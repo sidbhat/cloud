@@ -1,0 +1,76 @@
+%{----------------------------------------------------------------------------
+  - [ NIKKISHI CONFIDENTIAL ]                                                -
+  -                                                                          -
+  -    Copyright (c) 2011.  Nikkishi LLC                                     -
+  -    All Rights Reserved.                                                  -
+  -                                                                          -
+  -   NOTICE:  All information contained herein is, and remains              -
+  -   the property of Nikkishi LLC and its suppliers,                        -
+  -   if any.  The intellectual and technical concepts contained             -
+  -   herein are proprietary to Nikkishi LLC and its                         -
+  -   suppliers and may be covered by U.S. and Foreign Patents,              -
+  -   patents in process, and are protected by trade secret or copyright law.
+  -   Dissemination of this information or reproduction of this material     -
+  -   is strictly forbidden unless prior written permission is obtained      -
+  -   from Nikkishi LLC.                                                     -
+  ----------------------------------------------------------------------------}%
+<html><head>
+<meta name="layout" content="formViewer"/>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<title>Form Builder Forms</title>
+<style>
+	.formBody {
+    	margin: 5px auto;
+    	width:640px;
+	}
+</style>
+</head>
+<body >
+	<div class="container">
+		<div class="body none" style="font-family: Georgia,Georgia,serif; font-size: 14px; color: #rgb(0, 0, 0); background-color: #transparent">
+			<div class="formBodyStyle">
+  				<div class="formHeading centerAlign" style="background-color: #null;">
+  					<div class="headingContainer">
+  						<div class="formHeadingStyle">
+  							<h2 class="heading" style="font-weight: bold;font-style: normal;text-decoration: none;margin:0;color: #null;">Search</h2>
+  						</div>
+  					</div>
+  				</div>
+  			</div>
+  			<g:form class="uniForm" name="searchForm" method="get" controller="PF" action="show">
+  				<div class="formControls">
+  					<div id="searchFieldControlHolder" class=" ctrlHolder " rel="1" style="padding:5em 0;">
+  						<div>
+  							<div class="customLengthLabel" style="width: 43%; text-align: right;"
+  								><label for="searchField" style="font-weight: normal; font-style: normal; "
+  									><span style="text-decoration: none;line-height:16px;">Unique Id</span><em>&nbsp;</em
+  								></label></div
+  							><div class="customLengthField mClass"	style="width: 53%;"	  
+  								><input type="text" style="font-weight: normal; font-style: normal;text-decoration: none; " name="uniqueId" id="uniqueId" class="textInput">
+  							</div>
+  							<div style="border:0;padding: 5px 1em;margin:0;margin-left:60%;" >
+							    <div style="display:inline-block;" >
+									<input type="button" style="width:64px;height:27px;" value="Search" class="button button-blue" onclick="submitForm()">
+								</div>
+							</div>
+  						</div>
+  					</div>
+  					
+  				</div>
+  			</g:form>
+  			<script>
+  				function submitForm(){
+  	  				  var fieldVal = $("#uniqueId").val();
+  	  				  if(jQuery.trim(fieldVal)==''){
+  	  	  				  alert("Please enter your unique id")
+  	  	  			  }else{
+  	  	  	  			  $("[name='searchForm']").submit();
+  	  	  	  		  }
+  	  	  				 
+  	  				}
+  			</script>
+  		</div>
+  	</div>
+			
+
+</body></html>

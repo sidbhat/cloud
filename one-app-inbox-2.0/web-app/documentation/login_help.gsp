@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+	<resource:carousel />
+	<resource:lightBox labelImage="Screen" labelOf="of"/>
+    <title>Form Builder Cloud Documentation</title><!-- Framework CSS -->
+    <link rel="stylesheet" href="assets/blueprint-css/print.css" type="text/css" media="print" /><!--[if lt IE 8]><link rel="stylesheet" href="assets/blueprint-css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+    <link rel="stylesheet" href="assets/blueprint-css/plugins/fancy-type/screen.css" type="text/css" media="screen, projection" />
+    <style type="text/css" media="screen">
+/*<![CDATA[*/
+		body {
+			    background: none repeat scroll 0 0 #FFFFFF;
+			    color: #222222;
+			    font-family: "Helvetica Neue",Arial,Helvetica,sans-serif;
+			    font-size: 80%;
+			}
+    /*]]>*/
+    </style>
+    <link rel="stylesheet" media="screen" href="../css/messages.css" type="text/css" />
+    <link rel="stylesheet" media="screen" href="../css/forms.css" type="text/css" />
+    <link rel="stylesheet" media="screen" href="../css/tables.css" type="text/css" />
+    <script type="text/javascript" src="../js/jquery.tools.min.js">
+</script>
+    <script type="text/javascript" src="../js/global.js">
+</script>
+    <style type="text/css">
+/*<![CDATA[*/
+    body {
+    font: 12px/120% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', 'Helvetica', Arial, Verdana, sans-serif;
+    }
+    .html_code {
+    background-color:#CEDCEC;
+    border:1px solid #000000;
+    color:#000000;
+    font:12px Verdana,Arial,Helvetica,sans-serif;
+    padding:4px;
+    text-align:left;
+
+    padding-left: 20px;
+    }
+    #overlay {
+    display: none;
+    }
+    /*]]>*/
+    </style>
+</head>
+
+<body>
+    <div class="container">
+    	<div class="message info">
+		     <p align="center"><b>Helpful Tip</b></p>
+		 </div>
+			<p>In the trial version you have end user privileges (manager and client admin are the other roles available) and have the following features available:</p>
+			<table>
+				<tr>
+					<td> 1.&nbsp; </td>
+					<td> Analyze your inbox and convert specific emails to feeds. </td>
+				</tr>
+				<tr>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td> 2.&nbsp; </td>
+					<td> Maintain internal comments and view attachments on the email feeds. </td>
+				</tr>
+				<tr>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td> 3.&nbsp; </td>
+					<td> Work with internal forms like Leave Approval and Time Approval. </td>
+				</tr>
+				<tr>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td> 4.&nbsp; </td>
+					<td> Work with external (public forms) like Job Satisfaction Survey and Customer Satisfaction Survey. </td>
+				</tr>
+				<tr>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td> 5.&nbsp; </td>
+					<td> Share feeds with users, groups, departments and more. </td>
+				</tr>
+				<tr>
+					<td colspan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td style="vertical-align: top;">6.&nbsp;</td>
+					<td> The manager role provides you the ability to create new forms, approve reject entries and run reports on the forms. If you would like to get the manager role for your account, send a direct message to the client administrator in the feeds view. </td>
+				</tr>
+			</table>
+     </div>
+</body>
+</html>

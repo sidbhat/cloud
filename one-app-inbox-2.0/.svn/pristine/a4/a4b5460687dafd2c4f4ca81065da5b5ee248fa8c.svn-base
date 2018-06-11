@@ -1,0 +1,565 @@
+
+package org.grails.formbuilder
+
+import java.text.SimpleDateFormat;
+
+import org.grails.formbuilder.widget.Widget
+import org.grails.paypal.Payment;
+import org.grails.prettytime.PrettyTimeTagLib;
+import org.grails.paypal.PaymentItem;
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.codehaus.groovy.grails.plugins.springsecurity.SpringSecurityUtils;
+import org.codehaus.groovy.grails.plugins.web.taglib.ApplicationTagLib;
+import org.codehaus.groovy.grails.web.pages.FastStringWriter
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.servlet.support.RequestContextUtils as RCU
+import grails.converters.JSON
+
+/**
+* Form Viewer Controller for Dynamic Domain Class.
+*
+* @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+*
+* @since 0.1
+*/
+class FormViewerTemplateService {
+	def grailsApplication
+	def domainClassService
+	def sqlDomainClassService
+	private PrettyTimeTagLib g
+	static transactional = false
+	
+	void setApplicationContext(ApplicationContext applicationContext) {
+		g = applicationContext.getBean(PrettyTimeTagLib)
+	}
+	
+	String getShowOnlyMessageTemplate(def request, def flash, Form form){
+		getShowOnlyMessageTemplateSource(request, flash, form);
+		return FormBuilderConstants.FV_SHOW_VIEW_ONLY_MESSAGE
+	}
+	
+	String getCreateViewTemplate(def request, def flash, Form form, Object domainInstance = null,boolean emailEmbedForm=false) {
+		 if (request['isTablet'])		 
+		 return getViewTemplateSource(FormBuilderConstants.FVIPAD_CREATE_VIEW, request, flash, form, false, domainInstance,true,emailEmbedForm)
+		 else
+		return getViewTemplateSource(FormBuilderConstants.FV_CREATE_VIEW, request, flash, form, false, domainInstance,true,emailEmbedForm)
+	}
+	
+	String getEditViewTemplate(def request, def flash, Form form, Object domainInstance = null) {
+		if (request['isTablet'])
+		return getViewTemplateSource(FormBuilderConstants.FVIPAD_EDIT_VIEW, request, flash, form, false, domainInstance)
+		else
+		return getViewTemplateSource(FormBuilderConstants.FV_EDIT_VIEW, request, flash, form, false, domainInstance)
+	}
+	
+	private String getViewTemplateSource(String viewTemplate, def request, def flash, Form form, Boolean readOnly = false, Object domainInstance = null, Boolean setDefaultValues = false, Boolean emailEmbedForm=false) {
+		Locale locale = new Locale('en')
+		//Locale locale = RCU.getLocale(request)
+		flash.language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+		def settings = JSON.parse(form.settings)
+		flash.formWidth = settings.width?:'640px'
+		println ""
+		flash.panelClass = settings?.themeText?:""
+		flash.description=(settings?.en?.description)?:""
+		flash.encodedDescription=(settings?.en?.description?.encodeAsHTML())?:""
+	  setBodyStyles(flash, settings, locale)
+	  setFormHeading(flash, settings, flash.language, emailEmbedForm)
+	  String backLink = ""
+	  def params = RequestContextHolder.currentRequestAttributes().params
+	  if(form && form.formCat == 'S' && params.action!='preview'){
+		  def link = ConfigurationHolder.config.grails.serverURL+'/'+params.controller+'/edit/'+flash.pfii+'?formId='+flash.pfid
+		  backLink = """&nbsp;<input type="button" class="button button-gray" onclick="window.location = '${link}';return false" value="Cancel"/>"""
+	  }
+	  if(params.action=='preview'){
+		  flash.formAction = ConfigurationHolder.config.grails.serverURL+'/form/edit/'+params.formId
+	  }else{
+	  	flash.formAction = ConfigurationHolder.config.grails.serverURL+'/'+params.controller+'/save'
+	  }
+		return viewTemplate.replace('@FIELDS', 
+			getWidgetsTemplateText(form, locale, readOnly, domainInstance,setDefaultValues,emailEmbedForm)).replace(
+				'@pfii',"${flash.pfii?:''}").replace(
+				'@pfid',"${flash.pfid?:''}").replace(
+				'@pffn',"${flash.pffn?:''}").replace(
+				'@aformId',""+form.id).replace(
+				'@BackButtonForSubForm',backLink.toString()).replace(
+				"@widthSetterScript",setWidthSetterScript(settings)).replace(
+				'@styleBody',(settings?.themeText && params.controller != 'embed')?("<style>body{background:#"+ ConfigurationHolder.config.formViewerBackground[settings.themeText]."bodyBGColor" +"!important}</style>"):"")
+	}
+	
+	
+	private getShowOnlyMessageTemplateSource(def request, def flash, Form form) {
+		Locale locale = RCU.getLocale(request)
+		flash.language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+		def settings = JSON.parse(form.settings)
+	  setBodyStyles(flash, settings, locale)
+	}
+	
+	private setBodyStyles(def flash, def settings, Locale locale) {
+		if (settings) {
+			flash.bodyStyles = "font-family: ${settings."${flash.language}"?.styles?.fontFamily}; " + 
+			                   "font-size: ${settings."${flash.language}"?.styles?.fontSize}px; " +
+									       "color: #${settings?.styles?.form?.color?:settings?.styles?.color}; " +
+												 "background-color: #${(settings?.styles?.form?.backgroundColor?:settings?.styles?.backgroundColor)?:'F8CB9C'}"
+		} else {
+		  flash.bodyStyles = FormBuilderConstants.EMPTY_STRING
+		}
+		flash.formCSS = settings?.en?.CSS?:'.formBodyStyle{\nfont-size:13px;\n}\ninput[type="submit"]{\ncolor:white;\n}'
+		flash.formJS = settings?.en?.js?:'function beforeSubmit(){\n   //code for validation before save\n   return true;//or false accordingly\n}'
+	}
+	
+	private setWidthSetterScript(def settings) {
+		def widthSetterScript
+		if (settings) {
+			widthSetterScript = """var labelWidth = ${settings.labelWidth?:43};
+        		var labelHeight = ${settings.labelHeight?:53};
+        		var leftCenterMargin = (100 - (labelWidth + labelHeight))/2 - 1;
+        		var startPosition = labelWidth + leftCenterMargin;
+        		\$(".customLengthLabel").css("width",startPosition - leftCenterMargin +"%");
+        		\$(".customLengthField").css("width",100 - startPosition - leftCenterMargin-2 +"%");"""
+			if(settings.labelDisplay == "1"){
+				widthSetterScript += """\$(".customLengthLabel").css("text-align","left");"""
+			}else if(settings.labelDisplay == "2"){
+				widthSetterScript += """\$(".customLengthLabel").css("text-align","right");"""
+			}
+		} else {
+		  widthSetterScript = ""
+		}
+		return widthSetterScript
+	}
+	
+	private setFormHeading(def flash, def settings, language, emailEmbedForm) {
+		if (settings?."${language}") {
+			String style = "font-weight: ${settings[language]?.styles?.fontStyles[0] == 1 ? 'bold' : 'normal' };" +
+			               "font-style: ${settings[language]?.styles?.fontStyles[1] == 1 ? 'italic' : 'normal' };" +
+						   "text-decoration: ${settings[language]?.styles?.fontStyles[2] == 1 ? 'underline' : 'none' };margin:0;" +
+						   "color: #${settings.styles.heading?.color };"
+			
+			flash.formHeading = """<${settings[language].heading} class="heading" style="${style}">""" + 
+				                  "${settings[language].name}</${settings[language].heading}>"
+			flash.headingStyle = "${emailEmbedForm?'border-bottom: 1px dashed #BBB;padding: 5px 1em;':''}background-color: #${settings.styles.heading?.backgroundColor };"
+			flash.descriptionStyle = "color: #${settings.styles.description?.color };background-color: #${settings.styles.description?.backgroundColor };"
+			flash.formName = settings[language].name
+			//println "form name is ${flash.formName }"
+		  flash.formHeadingHorizontalAlign = " ${settings[language].classes[0]}"
+		} else {
+		  flash.headingStyle = ""
+		  flash.descriptionStyle = ""
+		  flash.formHeading = FormBuilderConstants.EMPTY_STRING
+		  flash.formHeadingHorizontalAlign = FormBuilderConstants.EMPTY_STRING
+		}
+	}
+	
+	String getShowViewTemplate(def request, def flash, Form form, Object domainInstance = null) {
+		return getViewTemplateSource(FormBuilderConstants.FV_SHOW_VIEW, request, flash, form, true,domainInstance)
+	}
+	
+	String getListViewTemplate(def request, def flash, Form form) {
+		Locale locale = RCU.getLocale(request)
+		def settings
+		flash.language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+		flash.formName = JSON.parse(form.settings)."${flash.language}".name
+		FastStringWriter out = new FastStringWriter()
+		out << "<th>Id.</th>"
+		form.fieldsList?.each { field ->
+			settings = JSON.parse(field.settings)
+			if (settings._persistable) {
+			  out << "<th>"
+			  out << settings."${flash.language}".label
+			  out << "</th>"
+			}
+		}	
+		return FormBuilderConstants.FV_LIST_VIEW.replaceAll('@FIELDS_HEADER', out.toString())
+	}
+	
+	private String getWidgetsTemplateText(Form form, Locale locale, Boolean readOnly = false, Object domainInstance = null,Boolean setDefaultValues = false,Boolean emailEmbedForm = false) {
+		Widget widget
+		Object settings
+		FastStringWriter out = new FastStringWriter()
+		def attachments = (domainInstance && domainInstance.id?(form.getDomainAttachments(domainInstance.id)):null)
+		boolean isRoleGranted = SpringSecurityUtils.ifAnyGranted(ConfigurationHolder.config.ROLES_TO_SHOW_ALL_RECORDS)
+		def params = RequestContextHolder.currentRequestAttributes().params
+		def masterFormFieldMap = [:]
+		def formAdmin = org.grails.formbuilder.FormAdmin.findByForm(form)
+		def showSubmitButton = true
+		def formSettings = JSON.parse(form.settings)
+		Widget.fullLength=formSettings.labelDisplay!="0"?true:false;
+		Widget.totalPageBreak=form.fieldsList.findAll{it.type == 'PageBreak'}.size()+1;
+		Widget.currentPageBreak = 1
+		def drawFields = true
+		if(domainInstance?.id && form && form.formCat != 'S'){
+			widget = grailsApplication.classLoader.loadClass("${FormBuilderConstants.WIDGET_PACKAGE}.UniqueId").newInstance()
+			def uniqueIdWidgetText = widget.getUniqueTemplateText(domainInstance,form,readOnly)
+			out << uniqueIdWidgetText
+		}
+		form.fieldsList?.eachWithIndex { field, i ->
+			if(emailEmbedForm && field.type == 'PageBreak'){
+				drawFields = false
+			}
+			if(drawFields){
+				widget = grailsApplication.classLoader.loadClass("${FormBuilderConstants.WIDGET_PACKAGE}.${field.type}").newInstance()
+				widget.isRoleGranted = isRoleGranted
+				widget.isEmailEmbedFrom = emailEmbedForm
+				settings = JSON.parse(field.settings)
+				if(field.type == "SubForm" && settings.subForm){
+					Form subFormInstance = Form.read(settings.subForm)
+					widget.subFormDomainClass = null
+				}else{
+					widget.subFormDomainClass = null
+				}
+				if(field.type == "LikeDislikeButton"){
+					Widget.currentDomainClass = form.id
+				}
+				if(field.type=="ImageUpload")
+					widget.attachments = form.getAttachments(field.name)
+				def widgetTemplateText = widget.getTemplateText(field, i, locale, readOnly, null, settings, null, domainInstance,setDefaultValues)
+				if (field.type == 'FileUpload') {
+					String attachmentText = ''
+					def itsAttachments = attachments?.findAll{it.inputName == field.name+'_file'}
+					itsAttachments?.each{attachment->
+						if(!readOnly){
+							attachmentText += ('<a href="'+ConfigurationHolder.config.grails.serverURL+'/attachmentable/download/'+attachment.id+'">'+attachment.name.encodeAsHTML()+'</a>')
+							attachmentText += " - "
+							def returnPageURI = ConfigurationHolder.config.grails.serverURL+"/"+params.controller+"/edit/"+params.id+"?formId="+params.formId+((params.pfid && params.pfii && params.pffn)?"&pfid=${params.pfid}&pfii=${params.pfii}&pffn=${params.pffn}":'')
+							
+							attachmentText += ('<a href="'+ConfigurationHolder.config.grails.serverURL+'/attachmentable/delete/'+attachment.id+'?returnPageURI='+returnPageURI.encodeAsURL()+'">Delete</a>')
+						}else{
+							attachmentText += attachment.name.encodeAsHTML()
+						}
+						attachmentText += '<br/>'
+					}
+					attachmentText += ''
+					widgetTemplateText = widgetTemplateText.replace("@attachments_noneditable_"+field.name,attachmentText.toString())
+					widgetTemplateText = widgetTemplateText.replace("@attachments_editable_"+field.name,attachmentText.toString())
+				}
+				if(field.type == 'SubForm'){
+					while(widgetTemplateText.indexOf("@subFormIDBeforeLink")>-1){
+						def link = '<a href="'+ConfigurationHolder.config.grails.serverURL+'/'+params.controller+'/edit/'
+						widgetTemplateText = widgetTemplateText.replace("@subFormIDBeforeLink",link.toString())
+						link = '?formId='+settings.subForm+'&pfii='+domainInstance.id+'&pfid='+form.id+'&pffn='+field.name+'" style="text-decoration: none;">'
+						widgetTemplateText = widgetTemplateText.replace("@subFormIDAfterLink",link.toString())
+						link = '</a>'
+						widgetTemplateText = widgetTemplateText.replace("@subFormIDCloseLink",link.toString())
+					}
+					if(widgetTemplateText.indexOf("@NewButtonHere")>-1){
+						//def link = '<a href="'+ConfigurationHolder.config.grails.serverURL+'/'+params.controller+'/create?formId='+settings.subForm+'&pfii='+domainInstance.id+'&pfid='+form.id+'&pffn='+field.name+'" style="text-decoration: none; margin-top: 20px; margin-right: 50px; float: right; width: 75px; padding-top:3px; padding-bottom:5px; border-radius:5px; text-align: center; vertical-align: middle; background-color: gray; color: white; line-height: inherit; font: inherit;">New</a>'
+						//save Main form on click on new
+						def link = '<a href="#" onclick=\'saveMainFormAndOpenSubForm("'+settings.subForm+'", "'+field.name+'")\' style="text-decoration: none; margin-top: 20px; margin-right: 50px; float: right; width: 75px; padding-top:3px; padding-bottom:5px; border-radius:5px; text-align: center; vertical-align: middle; background-color: gray; color: white; line-height: inherit; font: inherit;">New</a>'
+						widgetTemplateText = widgetTemplateText.replace("@NewButtonHere",link.toString())
+					}
+				}
+				if(field.type == 'Paypal'){
+					showSubmitButton = false
+					
+					def itemForm
+					def tableHTML = ""
+					def trs = ""
+					def totalAndPaymentStatus = ""
+					def payNowButton = ""
+					try{
+						if(settings.itemForm){
+							itemForm = Form.get(settings.itemForm)
+						}
+					}catch(Exception e){
+						log.error("PayPal Configuration error: Item Form not found with id: "+settings.itemForm)
+						trs = "<tr><td colspan='5'>PayPal Configuration error: Items configured not found</td></tr>"
+					}
+					Payment p
+					if(domainInstance?.id){
+						p = Payment.findByFormIdAndInstanceId("${form.id}","${domainInstance.id}")
+					}
+					if(p?.status == Payment.COMPLETE){
+						def totalPayment = 0
+						def currentCurr = ""
+						if(p)
+							currentCurr = ConfigurationHolder.config.formBuilder.currencies[p.currency.toString()]
+						p?.paymentItems?.each{PaymentItem paymentItem->
+							def itemDesc = ""
+							if(itemForm){
+								try{
+									if("${itemForm.id}" != paymentItem.itemNumber.split('_')[1]){
+										log.error "Error : Item form of Payment Control in ["+form.toString()+"] form is changed."
+										itemForm = Form.read(paymentItem.itemNumber.split('_')[1])
+									}
+									def item = sqlDomainClassService.get(paymentItem.itemNumber.split('_')[0],itemForm)
+									itemDesc = item[settings.idescf]
+								}catch(Exception e){
+									log.error "Exception :"+e
+								}
+							}
+							trs += """<tr class="itm">
+								<td>
+									<a href="${ConfigurationHolder.config.grails.serverURL}/preview/item/${paymentItem.itemNumber.split('_')[0]+'_'+form.id}" class="no-text help" rel="#overlay">
+										<img src="${ConfigurationHolder.config.grails.serverURL}/preview/firstImg/${paymentItem.itemNumber.split('_')[0]+'_'+form.id}" style="width:80px;">
+									</a>
+								</td>
+								<td><b>${paymentItem.itemName}</b><br>${itemDesc?:''}</td>
+								<td class="num">${currentCurr} <div class="amt">${paymentItem.amount}</div></td>
+								<td class="num">${paymentItem.quantity}</td>
+								<td class="num">${currentCurr} <div class="t">${paymentItem.amount*paymentItem.quantity}</div></td>
+							</tr>"""
+							totalPayment+=paymentItem.amount*paymentItem.quantity
+						}
+						if(totalPayment>0){
+							totalAndPaymentStatus = """<b>Total amount: ${currentCurr+totalPayment}</b><br><b>Payment status: ${p.status}</b>"""
+						}
+						//@totalAndPaymentStatus
+					}else{
+						def paymentStatus = ""
+						if(p){
+							paymentStatus = """<br><b>Payment status: ${p.status}</b>"""
+						}
+						if(itemForm){
+							def allInstances = sqlDomainClassService.list(itemForm)?.instanceList
+							if(p){
+								domainInstance."${field.name}_bought" = []
+								p?.paymentItems?.each{PaymentItem paymentItem->
+									def item = allInstances.find{"${it.id}" == paymentItem.itemNumber.split('_')[0]}
+									if(item){
+										item.qty = paymentItem.quantity
+										domainInstance."${field.name}_bought" << item
+									}
+								}
+								paymentStatus = """<br><b>Payment status: ${p.status}</b>"""
+							}
+							def itemsBought = domainInstance."${field.name}_bought"?:[]
+							def currentCurr = ConfigurationHolder.config.formBuilder.currencies[settings.curr]
+							allInstances?.eachWithIndex{item,iidx->
+								if(settings.iqf){
+									def options = ""
+									def itemBought = itemsBought?.find{it.id == item.id}
+									for(int qidx=1;(qidx<=item[settings.iqf])&&(qidx<=1000);qidx++){
+										options += """<option value="${qidx}" ${itemBought?.qty == qidx?'selected="selected"':''}>${qidx}</option>"""
+									}
+									trs += """<tr class="itm">
+										<td>
+											<a href="${ConfigurationHolder.config.grails.serverURL}/preview/item/${item.id+'_'+form.id}" class="no-text help" rel="#overlay">
+												<img src="${ConfigurationHolder.config.grails.serverURL}/preview/firstImg/${item.id+'_'+form.id}" style="width:80px;">
+											</a>
+										</td>
+										<td><b>${settings.inf?item[settings.inf]:''}</b></br>${settings.idescf?(item[settings.idescf]?:''):''}</td>
+										<td class="num">${currentCurr} <div class="amt">${settings.iaf?item[settings.iaf]:''}</div></td>
+										<td>${options?"<input type='hidden' class='itemNumber' name='${field.name}.paymentItems[${iidx}].itemNumber' value='${item.id}'><select style='width:50px' name='${field.name}.paymentItems[${iidx}].quantity' class='q'><option value='0'>0</option>${options}</select>":'Sold Out'}</td>
+										<td class="num">${currentCurr} <div class="t">0.00</div></td>
+									</tr>"""
+								}
+							}
+							if(!trs){
+								trs += """<tr>
+									<td colspan="5">No items available to buy</td>
+								</tr>"""
+							}
+						}
+						totalAndPaymentStatus = """<b>Total Payable Amount: ${ConfigurationHolder.config.formBuilder.currencies[settings.curr]}<span class='gt'>0</span> </b>${paymentStatus}"""
+						payNowButton = """<div class="pay_now_button" onclick="submitForm('${domainInstance?.id?"update":""}');"></div>"""
+					}
+					widgetTemplateText = widgetTemplateText.replace("@trsHTMLHere",trs.toString()).replace("@totalAndPaymentStatus",totalAndPaymentStatus.toString()).replace("@payNowButton",payNowButton.toString())
+					
+				}
+				if(settings.mapMasterForm && settings.mapMasterField){
+					if(!masterFormFieldMap."${settings.mapMasterForm}"){
+						masterFormFieldMap."${settings.mapMasterForm}" = []
+					}
+					masterFormFieldMap."${settings.mapMasterForm}" << [thisFormField:field.name,thisFormFieldType:field.type,mappedField:settings.mapMasterField]
+				}
+				out << widgetTemplateText
+				if(field.type == 'LookUp' && !readOnly){
+					out << """<script>
+						\$(document).ready(function(){
+							\$( "#${field.name}" ).autocomplete({
+								source: "${ConfigurationHolder.config.grails.serverURL+'/PF/lookUp?field='+field.id+'&formId='+form.id}",
+								minLength: 2,
+								select: function( event, ui ) {
+									setMappedFields(ui.item.wholeObj,"${field.name}","${settings.mapMasterForm?:''}");
+								}
+							});
+							\$( "#${field.name}search" ).click(function(){\$("#${field.name}").autocomplete("option","minLength",0).autocomplete("search",\$("#${field.name}").val()).autocomplete("option","minLength",2).trigger("focus");});
+						});
+					</script>"""
+				}
+			}
+		}
+		if(!readOnly){
+			def fieldRules
+			def pageRules
+			def searchableScript = ""
+			try{
+				fieldRules = formAdmin?.fieldRulesData
+				pageRules = formAdmin?.pageRulesData
+//				if(formAdmin.searchable){
+//					searchableScript = """\$('.searchBox').html('');
+//										\$('.searchBox').append(\$('<input type="text" placeholder="Search an existing ticket"/><div class="LookUpButton" id="UniqueIdSearch"></div>')).show();
+//										\$( ".searchBox input" ).autocomplete({source: "${ConfigurationHolder.config.grails.serverURL}/PF/search",minLength: 8,select: function( event, ui ) {window.location = '${ConfigurationHolder.config.grails.serverURL}/PF/edit/'+ui.item.instanceId+'?formId='+ui.item.formId}});
+//										"""
+//				}
+			}catch(Exception eRule){
+			}
+			out << """\
+				<script type="text/javascript">
+					${searchableScript}
+					var masterFormFieldMap = ${masterFormFieldMap as JSON}
+					\$(document).ready(function(){
+						fieldRules = ${fieldRules?fieldRules:'null'};
+						pageRules = ${pageRules?pageRules:'null'};
+						handleRuleOn();
+						\$('input').change(function(){
+							setTimeout("handleRuleOn()",50);
+						}).keyup(function(){
+							setTimeout("handleRuleOn()",50);
+						});
+						\$('textarea').keyup(function(){
+							console.log('coming here')
+							setTimeout("handleRuleOn()",50);
+						});
+						\$('select').change(function(){
+							setTimeout("handleRuleOn()",50);
+						});
+					});
+		            function setMappedFields(domainInstance,thisFieldName,masterForm){
+						var fieldMap = masterFormFieldMap[masterForm];
+						for(var i=0;i<fieldMap.length;i++){
+							var value = "";
+							if( \$.isArray(fieldMap[i].mappedField) ){
+								for(var j = 0; j< fieldMap[i].mappedField.length; j++){
+									value += domainInstance[fieldMap[i].mappedField[j]];
+								}
+							}else{
+								value = domainInstance[fieldMap[i].mappedField];
+							}
+							\$('input[name="'+fieldMap[i].thisFormField+'"]').val(value);
+								var IS_JSON = true;
+								if(value == null || typeof value != 'object'){
+									IS_JSON = false;
+									} 
+							if(fieldMap[i].thisFormFieldType=="AddressField"){
+								if(value != null && IS_JSON){
+									if(typeof value.line1 != 'undefined'){
+										\$.each(value, function(k, v){
+											\$("#"+fieldMap[i].thisFormField+"_"+k).val(v);
+											});
+									}else{
+										var values=""
+										\$.each(value, function(k, v){
+												if(v && v!=""){
+												values+=v+" "
+												}
+											});
+										\$("#"+fieldMap[i].thisFormField+"_line1").val(values);
+										blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+									}
+                                }else if(value != null && !IS_JSON){
+									\$("#"+fieldMap[i].thisFormField+"_line1").val(value);
+									blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+								}else {
+									\$("#"+fieldMap[i].thisFormField+"_line1").val('');
+									blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+								}
+							}else if(fieldMap[i].thisFormFieldType=="NameTypeField"){
+							if(value != null && IS_JSON){
+									if(typeof value.fn != 'undefined'){
+											\$.each(value, function(k, v){
+												\$("#"+fieldMap[i].thisFormField+k).val(v);
+											});
+									}else{
+										var values=""
+										\$.each(value, function(k, v){
+											values+=v
+											});
+										\$("#"+fieldMap[i].thisFormField+"fn").val(values);
+										blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+									}
+                                }else if(value != null && !IS_JSON){
+									\$("#"+fieldMap[i].thisFormField+"fn").val(value);
+									blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+								}else {
+									\$("#"+fieldMap[i].thisFormField+"fn").val('');
+									blankFields(fieldMap[i].thisFormFieldType,fieldMap[i].thisFormField)
+								}
+							}else{
+								if(value != null && IS_JSON){
+									var v=""
+									if(typeof value.line1 != 'undefined'){
+										v=value.line1+" "+value.line2+" "+value.city+" "+value.state+" "+value.country+" "+value.zip
+									}else if(typeof value.fn != 'undefined'){
+										v=value.pre+" "+value.fn+" "+value.mn+" "+value.ln;
+									}
+									\$("#"+fieldMap[i].thisFormField).val(v);
+								}else if(value != null && !IS_JSON){
+										\$("#"+fieldMap[i].thisFormField).val(value);
+								}else{
+									\$("#"+fieldMap[i].thisFormField).val(value);
+								}
+							\$("#"+fieldMap[i].thisFormField).trigger("change");
+							}
+							\$('input[name="'+fieldMap[i].thisFormField+'show"]').val(value);
+						}
+					}
+					function submitForm(action){
+						if(action !=''){
+							\$('form',\$('.formBodyStyle')).attr('action',\$('form',\$('.formBodyStyle')).attr('action').replace("index",action));
+						}
+						\$('form',\$('.formBodyStyle')).submit();
+					}
+			function blankFields(fieldsType,thisFormField){
+				if(fieldsType=="AddressField"){
+					\$("#"+thisFormField+"_line2").val('');
+					\$("#"+thisFormField+"_city").val('');
+					\$("#"+thisFormField+"_state").val('');
+					\$("#"+thisFormField+"_zip").val('');
+					\$("#"+thisFormField+"_country").val('');
+				}else if (fieldsType=="NameTypeField"){
+					\$("#"+thisFormField+"pre").val('');
+					\$("#"+thisFormField+"mn").val('');
+					\$("#"+thisFormField+"ln").val('');
+				}
+			}
+	        </script>"""
+			if(drawFields){
+				if(formSettings.reCaptcha && (!domainInstance || !domainInstance.id)){
+					widget = grailsApplication.classLoader.loadClass("${FormBuilderConstants.WIDGET_PACKAGE}.Recaptcha").newInstance()
+					def reCaptchaText = widget.getRecaptchTemplateText(readOnly)
+					out << reCaptchaText
+				}
+				out << """<div class="buttons pageButtons" style="border:0;padding: 5px 1em;margin:0;">${Widget.currentPageBreak>1?'<div class="backButton" style="display:inline-block;"><input type="button" name="last" class="button button-gray" value="Back" style="width:64px;" /></div><div class="nextButton" style="display:none"><input type="button" name="last" class="button button-gray" value="Next" style="width:90px;" /></div>&nbsp;':''}"""
+				if(showSubmitButton){
+					if(params.action=='preview'){
+						out << """<input type="submit" class="button button-blue" value="Edit Form" />&nbsp;&nbsp;[@g.actionSubmit action="list" controller="form" class="button button-gray" value="Form List"  style=" color:gray;width: 100px;height: 36px;" /] """
+					}else{
+						out << """[@g.actionSubmit class="button button-green" action="${domainInstance && domainInstance.id?"update":"save"}" value="\${g.message({'code': 'default.button.${domainInstance && domainInstance.id?"update":"save"}.label', 'default': '${domainInstance && domainInstance.id?"Update":"Submit"}'})}" style="${emailEmbedForm?'width:100px;cursor:pointer;height:36px;color: black;background: #8FC857;background: -webkit-gradient(linear, left top, left bottom, from(#8FC857), to(#5C9425));background: -moz-linear-gradient(top, #8FC857, #5C9425);-pie-background: linear-gradient(top, #8fc857, #5c9425);border: 1px solid #561;':''}"/]"""
+					}
+				}
+				if(emailEmbedForm){
+					out << """[@g.actionSubmit class="button button-blue" action="create" value="\${g.message({'code': 'default.button.continue.label', 'default': 'Continue in original view'})}" style="${emailEmbedForm?'cursor:pointer;height:36px;background: #0095CD;background: -webkit-gradient(linear,left top,left bottom,from(#00ADEE),to(#0078A5));background: -moz-linear-gradient(top,#00ADEE,#0078A5);-pie-background: linear-gradient(top,#00adee,#0078a5);border: 1px solid #034462;color: black;':''}"/]"""
+				}
+				if(params.controller == 'formViewer'){
+					if(domainInstance && domainInstance.id){
+					out << """<input type="button" class="button button-red" value="\${g.message({'code': 'default.button.delete.label', 'default': 'Delete'})}" style="margin-left:5px;" onclick="thisInstanceDelete()"/>
+                              <script>
+									function thisInstanceDelete(){
+                                        loadScreenBlock();"""
+									if(form && form.formCat !='S')
+										out<<"""window.location = "${ConfigurationHolder.config.grails.serverURL}/formViewer/delete/${domainInstance.id}?formId=${form.id}&t=${new Date().time}" """
+									else
+										out<<"""window.location = "${ConfigurationHolder.config.grails.serverURL}/formViewer/delete/${domainInstance.id}?formId=${form.id}&t=${new Date().time}&pfii=${params.pfii}&pfid=${params.pfid}&pffn=${params.pffn}" """
+									out<<"""} </script>"""
+					}
+					if(form && form.formCat !='S'){
+					out<<"""<input type="button" class="button button-blue" value="\${g.message({'code': 'default.button.list.label', 'default': 'List'})}" style="margin-left:5px;" onclick="goToFormViewerList()"/>
+                              <script>
+								function goToFormViewerList(){
+                                    loadScreenBlock();
+									window.location = "${ConfigurationHolder.config.grails.serverURL}/formViewer/list?formId=${form.id}&t=${new Date().time}"
+								}
+                          </script>"""
+					}
+				}
+				out << """@BackButtonForSubForm ${Widget.currentPageBreak>1?"Page ${Widget.currentPageBreak} of ${Widget.totalPageBreak}":''}</div>"""
+			}else{
+				out << """<div class="buttons pageButtons" style="border:0;padding: 5px 1em;margin:0;">
+							[@g.actionSubmit class="button button-blue" action="create" value="\${g.message({'code': 'default.button.continue.label', 'default': 'Continue in original view'})}" style="${emailEmbedForm?'cursor:pointer;height:36px;background: #0095CD;background: -webkit-gradient(linear,left top,left bottom,from(#00ADEE),to(#0078A5));background: -moz-linear-gradient(top,#00ADEE,#0078A5);-pie-background: linear-gradient(top,#00adee,#0078a5);border: 1px solid #034462;color: black;':''}"/]
+						</div>"""
+			}
+		}
+		return out.toString();
+	}
+}

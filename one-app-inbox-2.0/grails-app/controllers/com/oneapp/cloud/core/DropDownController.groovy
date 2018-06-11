@@ -1,0 +1,401 @@
+
+
+ package com.oneapp.cloud.core
+ import java.text.DecimalFormat
+
+import org.codehaus.groovy.grails.plugins.springsecurity.SpringSecurityUtils;
+import org.grails.formbuilder.*;
+import org.grails.paypal.*; 
+import grails.plugin.multitenant.core.util.TenantUtils
+import grails.util.Environment
+class DropDownController {
+	
+	def springSecurityService
+	def sqlDomainClassService
+	def clientService
+
+    def index = { redirect(action: "list", params: params) }
+
+    // the delete, save and update actions only accept POST requests
+    static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
+
+    def list = {
+        params.max = Math.min(params.max ? params.max.toInteger() : 10, 100)
+        [dropDownInstanceList: DropDown.list(params), dropDownInstanceTotal: DropDown.count()]
+    }
+
+    def create = {
+        def dropDownInstance = new DropDown()
+        dropDownInstance.properties = params
+        return [dropDownInstance: dropDownInstance]
+    }
+
+    def copy = {
+        def dropDownInstance = DropDown.get(params.id)
+        if (!dropDownInstance) {
+            flash.message = "dropDown.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "DropDown not found with id ${params.id}"
+            redirect(action: "list")
+        }
+        else {
+            def newdropDownInstance = new DropDown()
+            newdropDownInstance = dropDownInstance
+            render(view: "create", model: [dropDownInstance: newdropDownInstance])
+        }
+    }
+
+
+    def save = {
+        def dropDownInstance = new DropDown(params)
+        if (!dropDownInstance.hasErrors() && dropDownInstance.save()) {
+            flash.message = "dropDown.created"
+            flash.args = [dropDownInstance.id]
+            flash.defaultMessage = "DropDown ${dropDownInstance.id} created"
+            redirect(action: "edit", id: dropDownInstance.id)
+        }
+        else {
+            render(view: "create", model: [dropDownInstance: dropDownInstance])
+        }
+    }
+
+
+
+    def edit = {
+        def dropDownInstance = DropDown.get(params.id)
+        if (!dropDownInstance) {
+            flash.message = "dropDown.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "DropDown not found with id ${params.id}"
+            redirect(action: "list")
+        }
+        else {
+            return [dropDownInstance: dropDownInstance]
+        }
+    }
+
+    def update = {
+        def dropDownInstance = DropDown.get(params.id)
+        if (dropDownInstance) {
+            if (params.version) {
+                def version = params.version.toLong()
+                if (dropDownInstance.version > version) {
+
+                    dropDownInstance.errors.rejectValue("version", "dropDown.optimistic.locking.failure", "Another user has updated this DropDown while you were editing")
+                    render(view: "edit", model: [dropDownInstance: dropDownInstance])
+                    return
+                }
+            }
+            dropDownInstance.description = params.description
+            if (!dropDownInstance.hasErrors() && dropDownInstance.save()) {
+                flash.message = "dropDown.updated"
+                flash.args = [params.id]
+                flash.defaultMessage = "DropDown ${params.id} updated"
+                redirect(action: "edit", id: dropDownInstance.id)
+            }
+            else {
+                render(view: "edit", model: [dropDownInstance: dropDownInstance])
+            }
+        }
+        else {
+            flash.message = "dropDown.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "DropDown not found with id ${params.id}"
+            redirect(action: "edit", id: params.id)
+        }
+    }
+
+    def delete = {
+        def dropDownInstance = DropDown.get(params.id)
+        if (dropDownInstance) {
+            try {
+                dropDownInstance.delete()
+                flash.message = "dropDown.deleted"
+                flash.args = [params.id]
+                flash.defaultMessage = "DropDown ${params.id} deleted"
+                redirect(action: "list")
+            }
+            catch (org.springframework.dao.DataIntegrityViolationException e) {
+				log.error e
+                flash.message = "dropDown.not.deleted"
+                flash.args = [params.id]
+                flash.defaultMessage = "DropDown ${params.id} could not be deleted"
+                redirect(action: "edit", id: params.id)
+            }
+        }
+        else {
+            flash.message = "dropDown.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "DropDown not found with id ${params.id}"
+            redirect(action: "list")
+        }
+    }
+	def clientUsage = {
+		def totalForms, usedForms , totalUserAcc, usedUserAcc ,totalSpace,usedSpace, billingHistory
+		User currentUser= springSecurityService.currentUser
+		Client client= Client.get(currentUser?.userTenantId)
+		if(SpringSecurityUtils.ifAnyGranted(Role.ROLE_TRIAL_USER)){
+		 
+		  usedForms =Form.countByTenantId(currentUser.userTenantId)?:0
+		  totalUserAcc=client.maxUsers?:0
+		  usedUserAcc =User.countByUserTenantIdAndEnabled(currentUser.userTenantId,true)?:0
+		  totalSpace=client.maxAttachmentSize?:0
+		  if(currentUser.authorities*.authority?.contains(Role.ROLE_TRIAL_USER)){
+			  usedSpace= clientService.getTotalAttachmentSizeForTrialUser(currentUser)?:0
+			  usedForms =Form.countByTenantIdAndCreatedBy(currentUser.userTenantId,currentUser)?:0
+			  def appConf = ApplicationConf.get(1)
+			  totalForms=appConf.formForTrial?:0
+		  }else{
+		  	usedSpace= clientService.getTotalAttachmentSize(currentUser.userTenantId)?:0
+			  usedForms =Form.countByTenantId(currentUser.userTenantId)?:0
+			  totalForms=client.form?:0
+		  }
+		  billingHistory = BillingHistory.createCriteria().list(max:6){
+			  eq "client", client
+			  projections{
+				  order "billDate","desc"
+			  }
+		  }
+		}
+		if(!client?.consumerKey){
+			UUID uuid = UUID.randomUUID()
+			String key= uuid
+			client.consumerKey=key.replaceAll("-","")
+			client.save()
+		}
+		[totalForms:totalForms, usedForms:usedForms , totalUserAcc:totalUserAcc, usedUserAcc:usedUserAcc, totalSpace:totalSpace,usedSpace:usedSpace,client:client,billingHistory:billingHistory]
+	}
+	
+	def makePayment = {
+		try{
+			def planId = params.planType
+			def isRecursive = params.isRecursive
+			def user = springSecurityService.currentUser
+			def userRoles = user.authorities*.authority
+			def client
+			if(userRoles.contains(Role.ROLE_TRIAL_USER)){
+				if(!params.clientName)
+					throw new Exception("Client name cannot be empty")
+				session.setAttribute("clientName", params.clientName)
+				 client = Client.findByName(params.clientName)
+				if(client)
+					throw new Exception("Client name already exists")
+			}else{
+			
+				client=Client.get(user.id)
+			}
+			Plan plan = Plan.get(planId.toLong())
+			def amount = plan.amount
+			Payment payment = new Payment()
+			def paymentItems = new PaymentItem()
+			paymentItems.amount = amount
+			paymentItems.itemName = plan.description
+			paymentItems.itemNumber = plan.id
+			payment.addToPaymentItems(paymentItems)
+			payment.buyerId = user.id
+			Calendar cal = Calendar.getInstance();
+			if(client && client.plan && client?.plan?.amount>plan?.amount){
+				def ch=false
+				def usedForms =Form.countByTenantId(user.userTenantId)?:0
+				def usedUserAcc =User.countByUserTenantIdAndEnabled(user.userTenantId,true)?:0
+				def usedSpace= clientService.getTotalAttachmentSize(user.userTenantId)?:0
+				if(plan.form<= usedForms){
+					ch=true
+					flash.message = "Error : You are currently using "+usedForms+" forms"
+				}else if(plan.maxStorage<=usedSpace/1024){
+					ch=true
+					flash.message = "Error : You are currently using "+usedSpace+" storage space"
+				}else if( plan.maxUsers<=usedUserAcc){
+					ch=true
+					flash.message = "Error : You are have  "+usedUserAcc+" Users"
+				}
+				if(ch){
+					flash.defaultMessage = flash.message
+					redirect(action: "clientUsage")
+					return
+				}
+			}
+			if (payment?.validate()) {
+				request.payment = payment
+				payment.save(flush: true)
+				def config = grailsApplication.config.grails.paypal
+				def server = config.server
+				def baseUrl = grailsApplication.config.grails.serverURL
+				def login = config.login
+				if(Environment.current != Environment.PRODUCTION){
+					  println "DUMMY SETUP FOR CURRENT(${Environment.current}) Environment"
+					  server = config.testServer
+					  login = "ashish_1349692421_biz@yourdomain.com"
+				}else{
+					  println "CURRENT(${Environment.current}) Environment"
+				}
+				if (!server || !login) throw new IllegalStateException("Paypal misconfigured! You need to specify the Paypal server URL and/or account email. Refer to documentation.")
+				def commonParams = [buyerId: payment.buyerId, transactionId: payment.transactionId]
+				commonParams.returnAction = "paymentSuccess"
+				commonParams.returnController = "dropDown"
+				commonParams.cancelAction = "paymentCancel"
+				commonParams.cancelController = "dropDown"
+				def notifyURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'notify', params: commonParams).encodeAsURL()
+				def successURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'success', params: commonParams).encodeAsURL()
+				def cancelURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'cancel', params: commonParams).encodeAsURL()
+				def url = new StringBuffer("$server?")
+				url << "cmd=_xclick-subscriptions&"
+				url << "business=$login&on0=${payment.transactionId}&"
+				url << "item_name=${payment.paymentItems[0].itemName}&"
+				url << "item_number=${payment.paymentItems[0].itemNumber}&"
+				url << "a3="+amount+"&"
+				url << "p3=1&"
+				url << "t3=M&"
+				url << "currency_code=${payment.currency}&src=1&"
+				url << "bn=PP-SubscriptionsBF:btn_subscribeCC_LG.gif:NonHostedGuest"
+				url << "notify_url=${notifyURL}&"
+				url << "return=${successURL}&"
+				url << "cancel_return=${cancelURL}"
+				log.debug "Redirection to PayPal with URL: $url"
+				redirect(url: url)
+			}else{
+				redirect(action: "clientUsage")
+			}
+		}catch(Exception ex){
+			flash.message = "Error : "+ex.message
+			flash.defaultMessage = flash.message
+			redirect(action: "clientUsage")
+		}
+	}
+	
+	def paymentCancel = {
+		flash.message = "payment.cancelled"
+        flash.args = [params.id]
+        flash.defaultMessage = "Transaction was cancelled"
+        redirect(action: "clientUsage")
+	}
+	
+	def paymentSuccess = {
+		try{
+			def transactionId = params.transactionId
+			def payment = Payment.findByTransactionId(transactionId)
+			def user = User.get(payment.buyerId)
+			def userRoles = user.authorities*.authority
+			if(userRoles.contains(Role.ROLE_TRIAL_USER)){
+				def clientName = session.getAttribute("clientName")
+				def planId = payment.paymentItems[0].itemNumber
+				def plan = Plan.get(planId.toLong())
+				def client = new Client()
+				if(client && client.plan){
+					changeplan(client?.plan,plan)
+				}
+				client.name = clientName
+				client.plan = plan
+				client.maxUsers = plan.maxUsers
+				client.form = plan.form
+				client.maxAttachmentSize = plan.maxStorage
+				client.maxEmailAccount = plan.maxEmailAccount
+				client.maxFormEntries = plan.maxFormEntries
+				def cal = Calendar.getInstance()
+				client.validFrom = cal.getTime()
+				cal.add(Calendar.MONTH,1)
+				client.validTo = cal.getTime()
+				client.save(flush:true)
+				def billingHistory = new BillingHistory()
+				billingHistory.client = client
+				billingHistory.description = payment.paymentItems[0].itemName
+				billingHistory.amount = payment.paymentItems[0].amount
+				billingHistory.billDate = new Date()
+				billingHistory.transactionId = transactionId
+				billingHistory.save(flush:true)
+				UserRole.removeAll(user)
+				UserRole ur = new UserRole(user: user, role: Role.findByAuthority(Role.ROLE_ADMIN))
+				ur.save(flush:true)
+				springSecurityService.reauthenticate user.username
+				session['user'] = user
+				sqlDomainClassService.upgradeClient(user,client)
+				flash.message = "payment.success"
+				flash.args = [params.id]
+				flash.defaultMessage = "Transaction was successful. Your account has been upgraded."
+			}else{
+				def client = Client.get(user.userTenantId)
+				def planId = payment.paymentItems[0].itemNumber
+				def plan = Plan.get(planId.toLong())
+				if(client && client.plan){
+					changeplan(client?.plan,plan)
+				}
+				client.plan = plan
+				client.maxUsers = plan.maxUsers
+				client.form = plan.form
+				client.maxAttachmentSize = plan.maxStorage
+				client.maxEmailAccount = plan.maxEmailAccount
+				def cal = Calendar.getInstance()
+				client.validFrom = cal.getTime()
+				cal.add(Calendar.MONTH,1)
+				client.validTo = cal.getTime()
+				client.save(flush:true)
+				def billingHistory = new BillingHistory()
+				billingHistory.client = client
+				billingHistory.description = payment.paymentItems[0].itemName
+				billingHistory.amount = payment.paymentItems[0].amount
+				billingHistory.billDate = new Date()
+				billingHistory.transactionId = transactionId
+				billingHistory.save(flush:true)
+				flash.message = "payment.success"
+				flash.args = [params.id]
+				flash.defaultMessage = "Transaction was successful"
+				
+			}
+		}catch(Exception ex){
+			flash.message = "Error : "+ex.message
+			flash.defaultMessage = flash.message
+		}
+		redirect(action: "clientUsage")
+	}	
+	def unSubscribeRequest = {
+		def client = Client.get(springSecurityService.currentUser.userTenantId)
+		if(changeplan( client.plan, null)){
+			client.plan=null
+			client.save();
+			flash.message = "Unsubscribe Request sent "
+			flash.defaultMessage = flash.message
+		}
+		redirect(action: "clientUsage")
+	}
+	boolean changeplan(Plan oldPlan,Plan newPlan ){
+	 boolean result=false
+	 def superUserList=UserRole.findAllByRole(Role.findByAuthority(Role.ROLE_SUPER_ADMIN)).user
+	 def user =superUserList[0]
+	 def currentUser = springSecurityService.currentUser
+	 Client client= Client.get(currentUser.userTenantId)
+	 if(currentUser && client){
+			 TenantUtils.doWithTenant((int) user.userTenantId){
+				 def activityFeed = new ActivityFeed()
+				 def activityFeedConfig= new ActivityFeedConfig();
+				 activityFeedConfig =  ActivityFeedConfig.findByConfigName("content")
+					 if ( !activityFeedConfig ) {
+						 activityFeedConfig = new ActivityFeedConfig(configName:"content", createdBy: user)
+						 activityFeedConfig.save(flush:true)
+					 }
+					activityFeed.feedState = ActivityFeed.ACTIVE
+					//Request for account deletion for oneappcloud.com by admin@yourdomain.com
+					def mess
+					if(oldPlan){
+						if(!newPlan && newPlan==null){
+							mess = "Request for Unsubscribe Plan  ${oldPlan.planName}  by ${currentUser.username} (${client.name})"
+						}else{
+							 mess = "Request for change Plan From ${oldPlan.planName} to ${newPlan.planName}  by ${currentUser.username} (${client.name})"
+						}
+					}
+					activityFeed.config = activityFeedConfig
+					activityFeed.activityContent=mess
+					activityFeed.createdBy = user
+					activityFeed.dateCreated = new Date()
+					activityFeed.lastUpdated = new Date()
+					activityFeed.addToSharedRoles( com.oneapp.cloud.core.Role.findByAuthority(Role.ROLE_SUPER_ADMIN))
+					result=true
+					activityFeed.save(flush:true)
+					return true;
+			 }
+		 }else{
+		  return false
+		}
+		 return result
+	 
+	 }
+}

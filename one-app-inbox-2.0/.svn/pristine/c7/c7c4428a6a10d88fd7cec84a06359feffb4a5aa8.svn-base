@@ -1,0 +1,21 @@
+
+h1. removeAttachment
+
+h2. Purpose
+
+
+
+h2. Examples
+
+{code:java}
+foo.removeAttachment(attachment)
+{code}
+
+h2. Description
+
+
+
+Arguments:
+
+[* @attachment@
+]

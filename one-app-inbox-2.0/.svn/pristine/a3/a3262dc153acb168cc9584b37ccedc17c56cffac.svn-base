@@ -1,0 +1,96 @@
+
+<head>
+    <title>
+
+One App Cloud</title>
+    <meta name='layout' content='main'/>
+    <script>
+      jQuery.noConflict();
+      
+    	 
+       
+     
+</script>
+<style>
+
+.intl-tel-input.pretty .flag-dropdown .country-list {
+padding: 0;
+margin: 0 0 0 -1px;
+box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+background-color: white;
+border: 1px solid #cccccc;
+width: 222px !important;
+max-height: 200px;
+overflow-y: scroll;
+}
+
+.fr {
+float: left!important;
+}
+
+</style>
+
+
+<link rel="stylesheet" href="${resource(dir: 'css', file: 'intlTelInput.css')}"/>
+</head>
+
+<body class="login">
+<div class="login-box main-content">
+    <header><h2>Sign Up</h2></header>
+    <section>
+    <g:form action='register' controller="register" name="register" autocomplete='off'>
+
+        <g:if test="${flash.message}">
+            <div class="message"><g:message code="${flash.message}" args="${flash.args}"
+                                            default="${flash.defaultMessage}"/></div>
+        </g:if>
+
+        <br/>
+        <table>
+            <tr class="prop">
+            		<td valign="top" class="name" style="vertical-align: middle;"><label for="j_username"><g:message code='spring.security.ui.forgotPassword.username'/></label></td>
+                <td valign="top" class="name"><g:textField name="j_username" value="${showFieldValues?params.j_username:''}" size="25" placeholder="E.g.myname@companyname.com" style="width: 208px !important;"/></td>
+            </tr>
+            <tr class="prop">
+            		<td valign="top" class="name" style="vertical-align: middle;"><label for="j_company"><g:message code='register.signup.company'/></label></td>
+                <td valign="top" class="name"><g:textField name="j_company" size="25" value="${showFieldValues?params.j_company:''}"  placeholder="E.g. COMPANYNAME.COM" style="width: 208px !important;" /></td>
+            </tr>
+            <tr class="prop">
+            		<td valign="top" class="name" style="vertical-align: middle;"><label for="j_mobile"><g:message code='register.signup.mobile'/></label></td>
+                <td valign="top" class="name"><input type="tel" id="mobile-number" placeholder="E.g. +1 702 123 4567" name="j_mobile" size="25" style="-webkit-border-radius: 3px;
+-khtml-border-radius: 3px;
+border-radius: 3px;
+border: 1px solid #ccc;
+padding: 4px 6px;
+-moz-box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+-webkit-box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+font: 13px/16px Arial,sans-serif!important;padding-left: 35px;">
+                <%-- <g:textField name="j_mobile" size="25" value="${showFieldValues?params.j_mobile:''}" placeholder="Phone number"/>--%></td>
+            </tr>
+        </table>
+        <br/>
+  	<div class="action"> 
+  		<input type="button" class="button button-red fr"  value="Cancel"
+                    onclick="javascript:cancelAction();"/>
+        <g:submitButton name="submit" value="Sign Up" class="button button-green fr" style="margin-right:10px;" type="submit">Sign Up</g:submitButton>
+    </div>                    
+
+    </g:form>
+	</section>
+	<script>
+		function cancelAction(){
+			window.location = "${request.getContextPath()}"
+			}
+</script>
+</div>
+ <script type="text/javascript" src="${resource(dir: 'js', file: 'jquery-1.7.1.min.js')}"></script>
+   <script src="${resource(dir: 'js', file: 'intlTelInput.js')}"></script>
+   <script>
+    $("#mobile-number").intlTelInput();
+    </script>
+</body>
+
+   
+  
+

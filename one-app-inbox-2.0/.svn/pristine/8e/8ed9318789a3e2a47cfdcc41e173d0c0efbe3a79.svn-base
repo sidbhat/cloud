@@ -1,0 +1,17 @@
+<plugin name='freemarker' version='0.3' grailsVersion='1.2 &gt; *'>
+  <author>Jeff Brown</author>
+  <authorEmail>jeff.brown@springsource.com</authorEmail>
+  <title>FreeMarker Grails Plugin</title>
+  <description>The Grails FreeMarker plugin provides support for rendering FreeMarker templates
+as views.
+</description>
+  <documentation>http://grails.org/plugin/freemarker</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>UrlMappings</resource>
+    <resource>DemoController</resource>
+    <resource>org.springframework.grails.freemarker.FreeMarkerTagLib</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

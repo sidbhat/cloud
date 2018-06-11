@@ -1,0 +1,63 @@
+
+<html>
+<head>
+<title>Account expired</title>
+</head>
+<body>
+	<style>
+	body{
+	font: 13px/1.231 arial,helvetica,clean,sans-serif;
+	}
+.message.error {
+	border: 1px solid #eeb7ba;
+	background: #fae2e2;
+	background: -webkit-gradient(linear, left top, left bottom, from(#fae2e2),
+		to(#f2cacb) );
+	background: -moz-linear-gradient(top, #fae2e2, #f2cacb);
+	-pie-background: linear-gradient(top, #fae2e2, #f2cacb);
+	color: #be4741;
+	text-shadow: 0 1px 0 #fff;
+}
+
+.message {
+	background: #f3f8fc url(../images/skin/information.png) 8px 50%
+		no-repeat;
+	border: 1px solid #b2d1ff;
+	color: #006dba;
+	margin: 10px 0 5px 0;
+	padding: 5px 5px 5px 30px;
+}
+
+auth.cssmedia ="screen"
+.message {
+	padding: 10px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-khtml-border-radius: 5px;
+	border-radius: 5px;
+	margin-bottom: 10px;
+	-moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+	position: relative;
+}
+
+auth.cssmedia ="screen"
+.error {
+	color: #c30 !important;
+	font-weight: normal;
+}
+</style>
+	<div class="message error" style="margin: 35px; border-radius:5px;">
+		<h3>Client account expired</h3>
+		<p>
+			Your account is expired. <br>For details please email
+			administrator(<a
+				href="mailto:admin@yourdomain.com?subject=Account expired">admin@yourdomain.com</a>)
+
+		</p><p>
+			Click <a href="${grailsApplication.config.grails.serverURL}/logout">here</a> to goto the main page.
+		</p>
+	</div>
+</body>
+</html>

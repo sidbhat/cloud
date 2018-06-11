@@ -1,0 +1,221 @@
+package com.oneapp
+import grails.converters.deep.JSON;
+import grails.plugin.multitenant.core.util.TenantUtils
+
+import org.apache.http.HttpResponse
+import org.apache.http.NameValuePair
+import org.apache.http.client.HttpClient
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.impl.client.*
+import org.apache.http.message.BasicNameValuePair
+
+import com.oneapp.cloud.core.Client
+import com.oneapp.cloud.core.RegisterController
+import com.oneapp.cloud.core.Role
+import com.oneapp.cloud.core.RuleSet
+import com.oneapp.cloud.core.User
+import com.oneapp.cloud.core.UserRole
+import com.oneappcloud.exceptions.UserLimitException;
+
+class GoogleController {
+	def clientDataLoadService 
+	def clientService
+	def springSecurityService
+	def sessionRegistry
+	def clientID = grailsApplication.config.oauthClientID
+	def clientSecret =  grailsApplication.config.oauthClientSecret
+	def redirectURI =  grailsApplication.config.oauthRedirectURI
+	def applicationScopes = grailsApplication.config.oauthApplicationScopes
+	 
+    def googleOauth = { 
+		def url = "https://accounts.google.com/o/oauth2/auth"
+		def state = "OAC_${new Date().time}"
+//		println "state"+state
+		session.state = state//get state parameter in redirected URI action and verify this code is same at both the places (session and the returned parameter)
+		def parameterMap = [
+			state : state,//state: this parameter will be returned after the authentication is done
+			response_type : "code",//response_type: this parameter value must always be code
+			redirect_uri : redirectURI,//redirect_uri: URL where user will be returned after the authentication on google
+			scope : applicationScopes,
+			client_id: clientID,
+			approval_prompt: "auto"//approval_prompt: it can be either "auto" or "force"
+		]
+		def parameterString = ""
+		parameterMap.eachWithIndex {parameterName, parameterValue, index->
+			parameterString += ( parameterName + "=" + URLEncoder.encode(parameterValue, "UTF-8") + (parameterMap.size() == index + 1?"":"&") )
+		}
+		response.sendRedirect( url + "?" + parameterString )
+	}
+	
+	def oauth2callback = {
+		if( params.error == null && params.code ) {
+			if(session.state == params.state){
+//				println "state callback"+params.state
+				//Sending server side HTTPS POST request to get access_token and refresh_token
+				HttpClient client = new DefaultHttpClient();
+				HttpPost post = new HttpPost("https://accounts.google.com/o/oauth2/token");
+				
+				try {
+					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+					nameValuePairs.add(new BasicNameValuePair("code", params.code));
+					nameValuePairs.add(new BasicNameValuePair("client_id", clientID));
+					nameValuePairs.add(new BasicNameValuePair("client_secret", clientSecret));
+					nameValuePairs.add(new BasicNameValuePair("redirect_uri", redirectURI));
+					nameValuePairs.add(new BasicNameValuePair("grant_type", "authorization_code"));
+					post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+					
+					HttpResponse responseObject = client.execute(post);
+					BufferedReader rd = new BufferedReader(new InputStreamReader(responseObject.getEntity().getContent()));
+					String line = "";
+					def responseText = ""
+					while ((line = rd.readLine()) != null) {
+						responseText += line;
+					}
+					
+					//Below response will contain access_token
+					def responseJSON = JSON.parse(responseText);
+					
+					//Below code will find who is given this access_token and will find the user's information
+					HttpGet getRequest = new HttpGet( "https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + URLEncoder.encode(responseJSON.access_token, "UTF-8") )
+					
+					responseObject = client.execute(getRequest);
+					rd = new BufferedReader(new InputStreamReader(responseObject.getEntity().getContent()));
+					line = "";
+					responseText = ""
+					while ((line = rd.readLine()) != null) {
+						responseText += line;
+					}
+					
+					def userInfo = JSON.parse(responseText);
+					loadUser(userInfo)
+					if(request['isMobile']){
+					redirect(uri:grailsApplication.config.home_path_m)
+					}else{
+						redirect(uri:"/")
+					}
+				
+		        } catch(UserLimitException e){  
+					flash.message = message(code:"user.limit.reached",'default':"You have reached the maximum user creation Limit. Please contact your Administrator")
+					flash.defaultMessage = flash.message
+					redirect(controller:'login',action:'auth')
+				
+		        } catch (NullPointerException e) {
+					log.error e
+					flash.message = message(code:"enter.right.domain",'default':"Please sign out from your existing google account and try again")
+					flash.defaultMessage = flash.message
+					redirect(controller:'login',action:'auth')
+				} catch(Exception ex){
+				log.error ex
+					flash.message = "Error initializing aouth request"
+					flash.defaultMessage = flash.message
+					redirect(controller:'login',action:'auth')
+				}
+			} else {
+				flash.message = "Oops! Invalid state. Please try again."
+				flash.defaultMessage = flash.message
+				redirect(controller:'login',action:'auth')
+			}
+		} else {
+			flash.message = "Oops! Access is denied for the required scopes."
+			flash.defaultMessage = flash.message
+			redirect(controller:'login',action:'auth')
+		}
+	}
+	
+	def loadUser(def user) {
+		def domainName = user?.hd?:user.email.substring(user.email.indexOf('@')+1)
+		def email = user.email
+		def firstName = user.given_name
+		def lastName = user.family_name
+		User userToLoad = User.findByUsername(email)
+		def client
+		boolean changeRole = false
+		if(!client && domainName == "gmail.com"){
+			client = Client.read(1);
+		}
+		if(!client)
+			client = Client.findByDomain(domainName);
+		if(!client){
+			client = new Client(name:domainName,domain:domainName,description:domainName,licenseCollaboration:true,licenseFormBuilder:true).save(flush:true,validate: true)
+			clientDataLoadService.loadInitialData(client.id,null)
+		}
+		if(client){
+			def allUsersOfThisClient = User.createCriteria().list(){
+				eq 'userTenantId',client.id.toInteger()
+			}
+			def totalUsers = 0
+			if(allUsersOfThisClient)
+				totalUsers = allUsersOfThisClient.size()
+			boolean makeClientAdmin = false
+			if(totalUsers == 1 && userToLoad && allUsersOfThisClient.find{it.id == userToLoad.id}){
+				makeClientAdmin = true
+				changeRole = true
+			}
+			if(!userToLoad){
+				log.error "User request in oauth by: "+email+", First Name: "+firstName+", LastName: "+lastName
+				if(domainName != "gmail.com"){
+					def totalExistingUsers = clientService.getTotalUsers(client.id.toInteger())
+					if(totalExistingUsers >= client.maxUsers){
+						throw new UserLimitException()
+					}
+				}
+				userToLoad = new User(username:email,password:'password',enabled:true, accountExpired:true, accountLocked:true, passwordExpired:true,firstName:firstName,lastName:lastName)
+				userToLoad.userTenantId = client.id.toInteger()
+				userToLoad = userToLoad.save(flush:true,validate:false)
+				if(totalUsers == 0){
+					makeClientAdmin = true
+				}
+				changeRole = true
+			}
+			if(userToLoad){
+				if(!userToLoad.lastLogIn){
+					TenantUtils.doWithTenant(userToLoad.userTenantId) {
+						new RegisterController().welcomeEmail(userToLoad)
+					}
+				}
+				//userToLoad.userTenantId = client.id
+				if(changeRole){
+					if(makeClientAdmin && !userToLoad.authorities*.authority.contains(Role.ROLE_ADMIN)){
+						flash.message = "user.created.clientAdmin"
+						flash.args = []
+						flash.defaultMessage = "Your account is created and you are a client admin"
+						def roleOpenid = Role.findByAuthority(Role.ROLE_ADMIN)
+						new UserRole(user:userToLoad,role:roleOpenid).save(flush:true,validate:false)
+						try{
+							TenantUtils.doWithTenant(userToLoad.userTenantId) {
+								def allUsers = User.findAllByUserTenantId(userToLoad.userTenantId)
+								def defaultCreatedRuleSets = RuleSet.executeQuery("from RuleSet where createdBy = null and tenantId = "+userToLoad.userTenantId)
+								defaultCreatedRuleSets.each{
+									it.createdBy = userToLoad
+									it.save(flush:true)
+								}
+							}
+						}catch(Exception e){
+							log.error e
+						}
+					}
+					if(!makeClientAdmin){
+						def roleOpenid
+						if(domainName == 'gmail.com'){
+							roleOpenid = Role.findByAuthority(Role.ROLE_TRIAL_USER)
+							clientDataLoadService.loadInitialDataForTrialUser(userToLoad)
+						} else{
+							roleOpenid = Role.findByAuthority(Role.ROLE_USER)
+						}
+						new UserRole(user:userToLoad,role:roleOpenid).save(flush:true,validate:false)
+					}
+				}
+				springSecurityService.reauthenticate userToLoad.username
+				sessionRegistry.registerNewSession(session.id, userToLoad)
+			}
+		}
+	}
+	
+	
+	def terms() {
+		
+	}
+
+}

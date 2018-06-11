@@ -1,0 +1,135 @@
+<plugin name='attachmentable' version='0.2.1' grailsVersion='1.1 &gt; *'>
+  <author>Mihai Cazacu</author>
+  <authorEmail>cazacugmihai@gmail.com</authorEmail>
+  <title>Attachmentable Plugin</title>
+  <description>A plugin that allows you to add attachments to domain classes in a generic manner.</description>
+  <documentation>http://grails.org/plugin/attachmentable</documentation>
+  <resources>
+    <resource>BootStrap</resource>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.domains.Attachment</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.domains.AttachmentLink</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.domains.test.TestPoster</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.services.AttachmentableService</resource>
+    <resource>com.macrobit.grails.plugins.attachmentable.taglibs.AttachmentsTagLib</resource>
+  </resources>
+  <dependencies>
+    <plugin name='hibernate' version='1.1 &gt; *' />
+  </dependencies>
+  <behavior>
+    <method name='uploadStatus' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+    </method>
+    <method name='uploadStatus' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='attachUploadedFilesTo' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='attachUploadedFilesTo' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+      <argument type='java.lang.Object' />
+      <argument type='java.util.List' />
+    </method>
+    <method name='existAttachments' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+    </method>
+    <method name='existAttachments' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.AttachmentableController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='uploadStatus' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+    </method>
+    <method name='uploadStatus' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='attachUploadedFilesTo' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='attachUploadedFilesTo' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+      <argument type='java.lang.Object' />
+      <argument type='java.util.List' />
+    </method>
+    <method name='existAttachments' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+    </method>
+    <method name='existAttachments' artefact='Controller' type='com.macrobit.grails.plugins.attachmentable.controllers.test.TestEntryController'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='addAttachment' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.Object' />
+      <argument type='org.springframework.web.multipart.commons.CommonsMultipartFile' />
+    </method>
+    <method name='getAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.String' />
+    </method>
+    <method name='getAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.String' />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+    </method>
+    <method name='getAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.util.List' />
+    </method>
+    <method name='getAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.util.List' />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getTotalAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.String' />
+    </method>
+    <method name='getTotalAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+    </method>
+    <method name='getTotalAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.util.List' />
+    </method>
+    <method name='removeAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+    </method>
+    <method name='removeAttachments' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.util.List' />
+    </method>
+    <method name='removeAttachment' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='com.macrobit.grails.plugins.attachmentable.domains.Attachment' />
+    </method>
+    <method name='removeAttachment' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.Long' />
+    </method>
+    <method name='removeAttachment' artefact='Domain' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry'>
+      <description />
+      <argument type='java.lang.String' />
+    </method>
+    <property name='attachments' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry' artefact='Domain'>
+      <description />
+    </property>
+    <property name='totalAttachments' type='com.macrobit.grails.plugins.attachmentable.domains.test.TestEntry' artefact='Domain'>
+      <description />
+    </property>
+  </behavior>
+</plugin>

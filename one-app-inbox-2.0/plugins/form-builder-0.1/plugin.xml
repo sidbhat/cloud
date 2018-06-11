@@ -1,0 +1,43 @@
+<plugin name='form-builder' version='0.1' grailsVersion='1.2.2 &gt; *'>
+  <author>Nikkishi LLC</author>
+  <authorEmail>admin@yourdomain.com</authorEmail>
+  <title>Create Online Forms</title>
+  <description> The Form Builder allows creation of online forms in web browser 
+ without any programming knowledge.
+ 
+</description>
+  <documentation>http://www.google.com</documentation>
+  <resources>
+    <resource>BootStrap</resource>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+    <resource>spring.resources</resource>
+    <resource>LoginController</resource>
+    <resource>LogoutController</resource>
+    <resource>org.grails.dynamicdomain.DdcController</resource>
+    <resource>org.grails.formbuilder.FormAdminController</resource>
+    <resource>org.grails.formbuilder.FormController</resource>
+    <resource>org.grails.formbuilder.FormReportController</resource>
+    <resource>org.grails.formbuilder.FormTemplateController</resource>
+    <resource>org.grails.formbuilder.FormViewerController</resource>
+    <resource>org.grails.formbuilder.ReloadUpdatedDomainClassesJob</resource>
+    <resource>UtilService</resource>
+    <resource>org.grails.formbuilder.DomainClassService</resource>
+    <resource>org.grails.formbuilder.FormTemplateService</resource>
+    <resource>org.grails.formbuilder.FormViewerTemplateService</resource>
+  </resources>
+  <dependencies>
+    <plugin name='jquery' version='1.4.2.7 &gt; *' />
+    <plugin name='jqueryUi' version='1.8.6 &gt; *' />
+    <plugin name='dynamicDomainClass' version='0.2.1 &gt; *' />
+    <plugin name='jqueryJson' version='2.2 &gt; *' />
+    <plugin name='freemarkerTags' version='0.5.8 &gt; *' />
+    <plugin name='uniForm' version='1.5 &gt; *' />
+    <plugin name='jqueryDatatables' version='1.7.5 &gt; *' />
+    <plugin name='jqueryValidationUi' version='1.2 &gt; *' />
+    <plugin name='langSelector' version='0.3 &gt; *' />
+  </dependencies>
+  <behavior />
+</plugin>

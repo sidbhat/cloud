@@ -1,0 +1,50 @@
+/** ****************************************************************************
+ * [ NIKKISHI CONFIDENTIAL ]                                                  *
+ *                                                                            *
+ *    Copyright (c) 2011.  Nikkishi LLC                                       *
+ *    All Rights Reserved.                                                    *
+ *                                                                            *
+ *   NOTICE:  All information contained herein is, and remains                *
+ *   the property of Nikkishi LLC and its suppliers,                          *
+ *   if any.  The intellectual and technical concepts contained               *
+ *   herein are proprietary to Nikkishi LLC and its                           *
+ *   suppliers and may be covered by U.S. and Foreign Patents,                *
+ *   patents in process, and are protected by trade secret or copyright law.  *
+ *   Dissemination of this information or reproduction of this material       *
+ *   is strictly forbidden unless prior written permission is obtained        *
+ *   from Nikkishi LLC.                                                       *
+ ***************************************************************************** */
+
+package com.oneapp.cloud.core
+
+import org.grails.comments.Commentable
+import org.grails.taggable.Taggable
+import java.io.Serializable;
+
+class Base implements Taggable, Commentable, Serializable{
+
+    Date dateCreated
+    Date lastUpdated
+    boolean active
+    boolean archived
+    DropDown status
+
+    static mapping = {
+        tablePerHierarchy false
+    }
+
+    static constraints = {
+        active blank: true, nullable: true
+        archived blank: true, nullable: true
+        status blank: true, nullable: true
+    }
+
+    def beforeInsert = {
+        dateCreated = new Date()
+        active = true
+    }
+    def beforeUpdate = {
+        lastUpdated = new Date()
+    }
+
+}

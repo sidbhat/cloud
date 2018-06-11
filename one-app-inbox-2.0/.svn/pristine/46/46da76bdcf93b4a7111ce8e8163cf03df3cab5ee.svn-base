@@ -1,0 +1,12 @@
+<plugin name='falcone-util' version='1.0' grailsVersion='1.3.4 &gt; *'>
+  <author>Eric Martineau</author>
+  <authorEmail>ericm@infusionsoft.com</authorEmail>
+  <title>Falcone Util Project</title>
+  <description>\
+The base classes used to support multi-tenancy and the falcone framework
+</description>
+  <documentation>http://grails.org/FalconeUtil+Plugin</documentation>
+  <resources />
+  <dependencies />
+  <behavior />
+</plugin>

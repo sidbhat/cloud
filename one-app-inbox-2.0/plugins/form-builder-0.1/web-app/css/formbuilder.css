@@ -1,0 +1,872 @@
+div.logo {
+	float: left;
+	width: 70px;
+	padding: 0;
+	margin: 0;
+}
+
+h1 {
+	color: #2c4780;
+	font-weight: normal;
+	font-size: 14px;
+}
+
+.nav {
+	background: #fff url(../images/skin/shadow.png) bottom repeat-x;
+	border: 1px solid #ccc;
+	border-style: solid none solid none;
+	margin-top: 5px;
+	padding: 10px 12px;
+	height: 20px;
+	margin-left: 70px;
+}
+
+.nav .title {
+	float: left;
+	margin: -13px -13px -13px 0;
+}
+
+.menuButton {
+	float: right;
+	font-size: 10px;
+	padding: 0 5px;
+}
+
+.menuButton a {
+	color: #333;
+	padding: 4px 6px;
+}
+
+.menuButton a.home {
+	background: url(../images/skin/house.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.logout {
+	background: url(../images/skin/exclamation.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.list {
+	background: url(../images/skin/database_table.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.create {
+	background: url(../images/skin/database_add.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.delete {
+	background: url(../images/skin/database_delete.png) center left
+		no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.edit {
+	background: url(../images/skin/database_edit.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+.menuButton a.save {
+	background: url(../images/skin/database_save.png) center left no-repeat;
+	color: #333;
+	padding-left: 25px;
+}
+
+#container {
+	clear: both;
+}
+
+.buttons {
+	background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+	border: 1px solid #ccc;
+	color: #666;
+	font-size: 10px;
+	margin-top: 5px;
+	overflow: hidden;
+	padding: 0;
+}
+
+.lang_selector {
+	float: right;
+	padding-right: 5px;
+}
+
+table {
+	border: 1px solid #ccc;
+	width: 100%
+}
+
+tr {
+	border: 0;
+}
+
+td,th {
+	font: 11px verdana, arial, helvetica, sans-serif;
+	line-height: 12px;
+	padding: 15px 16px;
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	background: #fff url(../images/skin/shadow.jpg);
+	color: #666;
+	font-size: 11px;
+	font-weight: bold;
+	line-height: 17px;
+	padding: 2px 6px;
+}
+
+th a:link,th a:visited,th a:hover {
+	color: #333;
+	display: block;
+	font-size: 10px;
+	text-decoration: none;
+	width: 100%;
+}
+
+th.asc a,th.desc a {
+	background-position: right;
+	background-repeat: no-repeat;
+}
+
+th.asc a {
+	background-image: url(../images/skin/sorted_asc.gif);
+}
+
+th.desc a {
+	background-image: url(../images/skin/sorted_desc.gif);
+}
+
+.odd {
+	background: #cbd2e0;;
+}
+
+.even {
+	background: #fff;
+}
+
+.list table {
+	border-collapse: collapse;
+}
+
+.list th,.list td {
+	border-left: 1px solid #ddd;
+}
+
+.list th:hover,.list tr:hover {
+	background: #b2d1ff;
+}
+
+.paginateButtons {
+	background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+	border: 1px solid #ccc;
+	border-top: 0;
+	color: #666;
+	font-size: 10px;
+	overflow: hidden;
+	padding: 10px 3px;
+}
+
+.paginateButtons a {
+	background: #fff;
+	border: 1px solid #ccc;
+	border-color: #ccc #aaa #aaa #ccc;
+	color: #666;
+	margin: 0 3px;
+	padding: 2px 6px;
+}
+
+.paginateButtons span {
+	padding: 2px 3px;
+}
+
+.message {
+	background: #f3f8fc url(../images/skin/information.png) 8px 50%
+		no-repeat;
+	border: 1px solid #b2d1ff;
+	color: #006dba;
+	margin: 10px 0 5px 0;
+	padding: 5px 5px 5px 30px
+}
+
+div.errors {
+	background: #fff3f3;
+	border: 1px solid red;
+	color: #cc0000;
+	margin: 10px 0 5px 0;
+	padding: 5px 0 5px 0;
+}
+
+div.errors ul {
+	list-style: none;
+	padding: 0;
+}
+
+div.errors li {
+	background: url(../images/skin/exclamation.png) 8px 0% no-repeat;
+	line-height: 16px;
+	padding-left: 30px;
+	list-style: none;
+}
+
+td.errors select {
+	border: 1px solid red;
+}
+
+td.errors input {
+	border: 1px solid red;
+}
+
+td.errors textarea {
+	border: 1px solid red;
+}
+
+.formulaCalculator {
+	margin-bottom: 0;
+	border-collapse: separate;
+	border: 0;
+	border-left: 1px solid #DDD;
+}
+
+.formulaCalculator td,.formulaCalculator th { /* white-space:nowrap; */
+	padding: 7px;
+	border: 1px solid #DDD;
+	background-color: #EEE;
+	text-align: center;
+	border-top-color: white;
+	border-left-color: white;
+}
+
+.fullLengthLabel {
+	white-space: pre;
+	white-space: pre-wrap;
+	white-space: pre-line;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -hp-pre-wrap;
+	word-wrap: break-word;
+	width: 100%;
+}
+
+.fullLengthField {
+	white-space: pre;
+	white-space: pre-wrap;
+	white-space: pre-line;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -hp-pre-wrap;
+	word-wrap: break-word;
+	width: 100%;
+}
+
+.fullLengthField input.lookUpInput {
+	width: 47%
+}
+
+.customLengthField input.lookUpInput {
+	width: 85%;
+}
+
+.ctrlHolder .LookUpButton {
+	vertical-align: top;
+	display: inline-block;
+}
+.ctrlHolder div.fullLengthField p.LookUpTypeFieldHint{
+	width: 39%;
+}
+.ctrlHolder div.fullLengthField div.likeDislikeOption,.ctrlHolder div.fullLengthField div.voteOption{
+	display: inline-block;
+}
+div.slider{
+	margin-bottom: 20px;
+}
+.customLengthLabel {
+	white-space: pre;
+	white-space: pre-wrap;
+	white-space: pre-line;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -hp-pre-wrap;
+	word-wrap: break-word;
+	width: 43%;
+	display: inline-block;
+	vertical-align: top;
+	padding-right: 1%;
+}
+
+.customLengthField {
+	white-space: pre;
+	white-space: pre-wrap;
+	white-space: pre-line;
+	white-space: -pre-wrap;
+	white-space: -o-pre-wrap;
+	white-space: -moz-pre-wrap;
+	white-space: -hp-pre-wrap;
+	word-wrap: break-word;
+	width: 53%;
+	margin-left: 1%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.customLengthField input[type=text],.customLengthField select,.customLengthField textarea,.customLengthField input[type=date],.customLengthField p,.customLengthField .formHint,.customLengthField .textInput
+	{
+	width: 100%;
+}
+
+.slider .ui-slider-handle,.slider .ui-state-focus {
+	width: 34px;
+	height: 36px;
+	border: 0px;
+	top: -11px;
+	margin-left: -17px;
+	background: transparent;
+	background-image: url(../images/face-3.png) !important;
+}
+
+.slider .ui-slider-handle:focus {
+	border: none;
+	outline: none;
+}
+
+.widthSetterSlider .ui-slider-handle,.widthSetterSlider .ui-state-focus
+	{
+	width: 2px;
+	height: 36px;
+	border: 0px;
+	cursor: col-resize;
+	top: 0;
+	margin-left: -1px;
+	background: transparent;
+	background-image: url(../images/resizeBG.png) !important;
+}
+
+.widthSetterSlider {
+	height: 2px;
+}
+.ctrlHolder .closeButton,.ctrlHolder .undoButton,.ctrlHolder .copyButton{
+	display:none;
+	z-index:2;
+}
+.ctrlHolder:hover .closeButton,.ctrlHolder:hover .undoButton,.ctrlHolder:hover .copyButton{
+	display:block;
+}
+.ctrlHolderSelected {
+	border: 1px solid gray;
+	background: rgba(233, 241, 26, 0.14);
+	-webkit-transition: background-color 700ms ease-out;
+	-moz-transition: background-color 700ms ease-out;
+	-o-transition: background-color 700ms ease-out;
+	transition: background-color 700ms ease-out;
+}
+
+.theme1 .formHeading {
+	background: #9C6;
+}
+
+.theme1 .formHeading h1,.theme1 .formHeading h2,.theme1 .formHeading h3,.theme1 .formHeading h4,.theme1 .formHeading h5,.theme1 .formHeading h6
+	{
+	font-family: sans-serif;
+	color: #EEE;
+}
+
+.theme1 #formDescription {
+	font-family: sans-serif;
+	font-size: 100%;
+	color: #000;
+}
+
+.theme1,.theme1 fieldset,.theme2 .builderPanel,.theme1 .formControls {
+	background: #FF9;
+	font-family: sans-serif;
+	color: #000
+}
+
+.theme1 table.lTable {
+	font-family: sans-serif;
+	color: #000
+}
+
+.theme2 .formHeading {
+	background: #783853
+}
+
+.theme2 .formHeading h1,.theme2 .formHeading h2,.theme2 .formHeading h3,.theme2 .formHeading h4,.theme2 .formHeading h5,.theme2 .formHeading h6
+	{
+	font-family: sans-serif;
+	color: #EEE;
+}
+
+.theme2 #formDescription {
+	font-family: sans-serif;
+	font-size: 100%;
+	color: #EEE;
+}
+
+.theme2,.theme2 fieldset,.theme2 .builderPanel,.theme2 .formControls {
+	background: #967E77;
+	font-family: sans-serif;
+	color: #EEE
+}
+
+.theme2 table.lTable {
+	font-family: sans-serif;
+	color: #EEE
+}
+
+.theme3 .formHeading {
+	background: #3B5998;
+}
+
+.theme3 .formHeading h1,.theme3 .formHeading h2,.theme3 .formHeading h3,.theme3 .formHeading h4,.theme3 .formHeading h5,.theme3 .formHeading h6
+	{
+	font-family: sans-serif;
+	color: #EEE;
+}
+
+.theme3 #formDescription {
+	font-family: sans-serif;
+	font-size: 100%;
+	color: #EEE;
+}
+
+.theme3,.theme3 fieldset,.theme3 .builderPanel,.theme3 .formControls {
+	background: #D8DFEA;
+	font-family: sans-serif;
+	color: #000011
+}
+
+.theme3 table.lTable {
+	font-family: sans-serif;
+	color: #000011
+}
+
+.theme4 .formHeading {
+	background: #55514D;
+}
+
+.theme4 .formHeading h1,.theme4 .formHeading h2,.theme4 .formHeading h3,.theme4 .formHeading h4,.theme4 .formHeading h5,.theme4 .formHeading h6
+	{
+	color: #EEE;
+}
+
+.theme4 #formDescription {
+	font-size: 100%;
+	color: #EEE;
+}
+
+.theme4 {
+	font-family: sans-serif;
+}
+
+.theme4,.theme4 fieldset,.theme4 .builderPanel,.theme4 .formControls {
+	background: #B3B0A9;
+	color: #000011;
+}
+
+.theme4 table.lTable {
+	font-family: sans-serif;
+	color: #000011
+}
+
+.none {
+	font-family: sans-serif;
+}
+
+.none #formDescription {
+	font-size: 100%;
+	color: #000000;
+}
+
+.formBody  h1,#builderPanel h1 {
+	color: #000000;
+	font-weight: bold;
+	margin: 0 0 0 0;
+	font-size: 24px;
+}
+
+.sClass input.textInput {
+	width: 25%;
+}
+
+.mClass input.textInput {
+	width: 50%;
+}
+
+.lClass input.textInput {
+	width: 98%;
+}
+
+.sClass input.lookUpInput {
+	width: 25%;
+}
+
+.mClass input.lookUpInput {
+	width: 50%;
+}
+
+.lClass input.lookUpInput {
+	width: 85%;
+}
+
+.sClass select.textInput {
+	width: 25%;
+}
+
+.mClass select.textInput {
+	width: 50%;
+}
+
+.lClass select.textInput {
+	width: 98%;
+}
+
+.twoCol div {
+	width: 48%;
+	display: inline-block;
+	vertical-align: top;
+	float: left;
+}
+.threeCol div {
+	width: 32%;
+	display: inline-block;
+	vertical-align: top;
+	float: left;
+}
+
+.sbs div {
+	display: inline-block;
+	vertical-align: middle;
+	float: left;
+}
+
+/*Start likert style*/
+#fieldSettings fieldset.innerFieldset {
+	padding: 2%;
+	width: 95%;
+	margin-bottom: 2px;
+}
+
+table.lTable {
+	border: 0;
+	border-collapse: collapse;
+	margin: 0;
+	width: 100%;
+	color: inherit
+}
+
+table.lTable td {
+	border: 1px solid #ccc;
+	text-align: center;
+	padding: 3px;
+	vertical-align: middle;
+	font-family: inherit;
+}
+
+table.lTable td {
+	background-color: rgba(238, 238, 238, 0.4); /*decrease it*/
+	font-weight: bold;
+}
+
+table.lTable thead td,table.lTable tbody td:first-child {
+	background-color: rgba(238, 238, 238, 0.4); /*increase it*/
+	padding: 7px;
+}
+
+table.lTable tbody td:first-child {
+	text-align: left;
+	width: 45%;
+	line-height: 16px;
+}
+
+table.lTable thead td:first-child {
+	background-color: transparent;
+	border: 0;
+}
+/*End likert style*/
+
+/*Start scaleRating style*/
+table.scaleRateTable {
+	border-collapse: collapse;
+	color: inherit;
+}
+
+table.scaleRateTable th,table.scaleRateTable td {
+	border: 1px solid #ccc;
+	padding: 5px;
+	font-family: inherit;
+	background-color: rgba(238, 238, 238, 0.4); /*decrease it*/
+}
+
+table.scaleRateTable th {
+	background-image: none;
+	background-color: rgba(238, 238, 238, 0.4); /*increase it*/
+	color: inherit;
+}
+/*Start scaleRating style*/
+.pageButtons .button {
+	width: 100px;
+	height: 36px;
+}
+
+table.datatable tbody tr:nth-child(odd) td {
+	background: rgba(176, 176, 179, 0.44);
+}
+
+table.datatable tbody tr:nth-child(even) td {
+	background: rgba(218, 218, 221, 0.48);
+}
+
+table.datatable,table.datatable tbody td {
+	color: inherit;
+}
+
+table.datatable thead th {
+	background: rgba(247, 247, 247, 0.44);
+	background: -webkit-gradient(linear, left top, left bottom, from(rgba(247, 247, 247,
+		0.44) ), to(#E1E1E1) );
+	background: -moz-linear-gradient(top, rgba(247, 247, 247, 0.44), #E1E1E1
+		);
+	-pie-background: linear-gradient(top, rgba(247, 247, 247, 0.44), #e1e1e1
+		);
+	border-bottom: 1px solid #AAA;
+	color: inherit;
+	text-shadow: 0 1px 0 rgba(168, 166, 166, 0.51);
+}
+
+.ctrlHolder ul,.formControls ul {
+	padding-left: 15px;
+	width: 100%;
+}
+
+.ctrlHolder ul li,.formControls ul li {
+	list-style-type: disc;
+}
+
+.playPreviewBox {
+	width: 75px;
+	position: relative;
+	float: right;
+	text-align: right;
+	padding: 0;
+}
+.playPreviewBox div{
+	width: 29px;
+	height: 29px;
+	display: inline-block;
+	cursor:pointer;
+	content:attr(title);
+}
+.formPreviewButton{
+	background: url(./../images/eye.png) no-repeat center;
+	/*background-size:100% 100%;*/
+}
+.formSettingsButton{
+	background: url(./../images/setting.png) no-repeat center;
+	/*background-size:16px 16px;*/
+	margin-left: 14px;
+}
+
+.uniForm input[type=text].addressLine1,.uniForm input[type=text].addressLine2
+	{
+	width: 53%;
+	border: 1px solid #AAA;
+	background: white;
+	padding: 4px 2px;
+}
+
+.uniForm input[type=text].city {
+	width: 21%;
+	border: 1px solid #AAA;
+	background: white;
+	padding: 4px 2px;
+}
+
+.uniForm input[type=text].state {
+	display: inline-block;
+	width: 21%;
+	font-weight: lighter;
+	padding: 4px 8px;
+}
+
+.uniForm input[type=text].country {
+	width: 21%;
+	border: 1px solid #AAA;
+	background: white;
+	padding: 4px 2px;
+}
+
+.uniForm input[type=text].zip {
+	display: inline-block;
+	width: 21%;
+	font-weight: lighter;
+	padding: 4px 8px;
+}
+
+.uniForm label.addressLine1,.uniForm label.addressLine2 {
+	width: 53%;
+	padding: 0px 10px;
+}
+
+.uniForm label.city {
+	display: inline-block;
+	width: 21%;
+	padding: 0px 10px;
+}
+
+.uniForm label.state {
+	display: inline-block;
+	width: 21%;
+	padding: 0px 10px;
+}
+
+.uniForm label.country {
+	display: inline-block;
+	width: 21%;
+	padding: 0px 10px;
+}
+
+.uniForm label.zip {
+	display: inline-block;
+	width: 21%;
+	padding: 0px 10px;
+}
+
+.addressLargeWrapper {
+	width: 100%;
+}
+
+.addressSmallWrapper {
+	width: 46%;
+	display: inline-block;
+}
+
+.addressControl {
+	color: #777777;
+	display: inline-block;
+}
+
+.addressControl input[type="text"].addressInput {
+	width: 97%;
+}
+
+.customLengthField .addressControl {
+	width: 100%;
+}
+
+.fullLengthField .addressControl {
+	width: 50%;
+}
+
+.addressRight {
+	margin-left: 5%;
+}
+
+.addressControl label {
+	margin: 2px 0 7px 2px;
+	font-size: smaller;
+}
+
+label span.example{
+	color: gray;
+	font-weight: normal;
+	font-size: smaller;
+}
+div.singlelineNumberCurrency{
+	width: 3%;
+	display: inline-block;
+	float: left;
+/* 	font-size: 22px; */
+	display: inline-block;
+}
+div.ctrlHolder div.fullLengthField div.singlelineNumberCurrency{
+	margin: 5px 0px;
+}
+div.ctrlHolder div.customLengthField div.singlelineNumberCurrency{
+	margin: 4px 10px 0px 0px;
+}
+div.ctrlHolder div.fullLengthField div.singlelineNumbermargin ,div.ctrlHolder div.customLengthField div.singlelineNumbermargin{
+	margin: 0px;
+}
+div.ctrlHolder div.fullLengthField.mClass .textInputCurrency{
+	width: 47%;
+}
+div.ctrlHolder div.customLengthField.mClass .textInputCurrency{
+	width: 43%;
+}
+div.ctrlHolder div.fullLengthField.sClass .textInputCurrency{
+	width: 22%;
+}
+div.ctrlHolder div.customLengthField.sClass .textInputCurrency{
+	width: 18%;
+}
+div.ctrlHolder div.fullLengthField.lClass .textInputCurrency{
+	width: 95%;
+}
+div.ctrlHolder div.customLengthField.lClass .textInputCurrency{
+	width: 91%;
+}
+div.ctrlHolder div.fullLengthField div.nameFieldSmallWrapper{
+	display: inline-block;
+}
+div.ctrlHolder div.fullLengthField div.nameFieldControl{
+	width: 90%;
+}
+.nameFieldControl {
+	margin: 2px 0 7px 2px;
+	color: #777777;
+	font-size: smaller;
+}
+div.fullLengthField div.nameFieldControl div.nameFieldPrefix input[type="text"].nameFieldInputPrefix {
+	width: 85%;
+}
+div.ctrlHolder div.fullLengthField div.nameFieldControl div.nameFieldPrefix {
+	width: 15%;
+}
+.nameFieldControl input[type="text"].nameFieldInput {
+	width: 90%;
+}
+div.ctrlHolder div.fullLengthField div.nameFieldControl div.nameFieldName {
+	width: 25%;
+}
+
+
+
+div.ctrlHolder div.customLengthField div.nameFieldSmallWrapper{
+	display: inline-block;
+}
+div.ctrlHolder div.customLengthField div.nameFieldControl{
+	width: 90%;
+}
+.nameFieldControl {
+	margin: 2px 0 7px 2px;
+	color: #777777;
+	font-size: smaller;
+}
+div.customLengthField  div.nameFieldPrefix input[type="text"].nameFieldInputPrefix {
+	width: 67%;
+}
+div.ctrlHolder div.customLengthField div.nameFieldControl div.nameFieldPrefix {
+	width: 13%;
+}
+div.ctrlHolder div.customLengthField div.nameFieldControl div.nameFieldName {
+	width: 40%;
+}
+div.ctrlHolder div.nameFieldControl div.showthis{
+	display: inline-block;
+}
+div.ctrlHolder div.nameFieldControl div.hidethis{
+	display: none;
+}

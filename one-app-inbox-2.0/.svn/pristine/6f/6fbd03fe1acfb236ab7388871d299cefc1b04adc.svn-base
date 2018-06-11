@@ -1,0 +1,52 @@
+/******************************************************************************
+ * [ NIKKISHI CONFIDENTIAL ]                                                  *
+ *                                                                            *
+ *    Copyright (c) 2011.  Nikkishi LLC                                       *
+ *    All Rights Reserved.                                                    *
+ *                                                                            *
+ *   NOTICE:  All information contained herein is, and remains                *
+ *   the property of Nikkishi LLC and its suppliers,                          *
+ *   if any.  The intellectual and technical concepts contained               *
+ *   herein are proprietary to Nikkishi LLC and its                           *
+ *   suppliers and may be covered by U.S. and Foreign Patents,                *
+ *   patents in process, and are protected by trade secret or copyright law.  *
+ *   Dissemination of this information or reproduction of this material       *
+ *   is strictly forbidden unless prior written permission is obtained        *
+ *   from Nikkishi LLC.                                                       *
+ ******************************************************************************/
+package com.oneapp.cloud.core
+
+class ImageTagLib {
+
+
+static namespace = 'images'
+  def imageService
+
+  def getImageURL_50 = { attrs->
+	 if(attrs?.item){
+      	out << "<img src='${imageService.getImageURL50(attrs?.item)}' height='50px' width='50px'/>"
+       imageService.deleteImage(attrs?.item)
+    }
+
+  }
+  def getImageURL_300 = { attrs->
+	
+       if(attrs?.item) {
+        def s = "<img src='${imageService.getImageURL300(attrs?.item)}' height='300px' width='300px'/>"
+        out << s
+        imageService.deleteImage(attrs?.item)
+       }
+  }
+  
+  def getImageURL = { attrs->
+  
+   if(attrs?.item){
+      	out << "<img src='${imageService.getImageURL(attrs?.item)}' />"
+        //imageService.deleteImage(attrs?.item)
+    }
+  
+  }
+  def deleteImage={ attrs->
+     imageService.deleteImage(attrs?.item)
+  }
+}

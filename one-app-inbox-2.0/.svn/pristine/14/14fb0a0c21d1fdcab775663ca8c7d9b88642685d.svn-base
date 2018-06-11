@@ -1,0 +1,289 @@
+/******************************************************************************
+ * [ NIKKISHI CONFIDENTIAL ]                                                  *
+ *                                                                            *
+ *    Copyright (c) 2011.  Nikkishi LLC                                       *
+ *    All Rights Reserved.                                                    *
+ *                                                                            *
+ *   NOTICE:  All information contained herein is, and remains                *
+ *   the property of Nikkishi LLC and its suppliers,                          *
+ *   if any.  The intellectual and technical concepts contained               *
+ *   herein are proprietary to Nikkishi LLC and its                           *
+ *   suppliers and may be covered by U.S. and Foreign Patents,                *
+ *   patents in process, and are protected by trade secret or copyright law.  *
+ *   Dissemination of this information or reproduction of this material       *
+ *   is strictly forbidden unless prior written permission is obtained        *
+ *   from Nikkishi LLC.                                                       *
+ ******************************************************************************/
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.grails.auth.*
+import org.grails.formbuilder.Form;
+import org.grails.formbuilder.FormAdmin;
+import org.grails.formbuilder.NotifyCondition;
+
+import grails.plugin.multitenant.core.util.TenantUtils;
+import grails.util.Environment
+
+import com.macrobit.grails.plugins.attachmentable.domains.Attachment;
+import com.oneapp.cloud.core.*
+
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.codehaus.groovy.grails.web.servlet.GrailsApplicationAttributes
+import org.springframework.context.ApplicationContext
+import org.springframework.web.context.WebApplicationContext
+import org.springframework.web.context.support.WebApplicationContextUtils
+
+class BootStrap {
+    def springSecurityService
+	def attachmentableService
+	def sessionFactory
+    def init = { servletContext ->
+		  // Create data only for dev environment
+       // if (Environment.currentEnvironment == Environment.DEVELOPMENT )
+       // {
+		HttpServletRequest.metaClass.isXhr = {->
+			'XMLHttpRequest' == delegate.getHeader('X-Requested-With')
+		}
+       ConfigurationHolder.config.log4j.appenders.dataBaseAppender.URL = ConfigurationHolder.config.dataSource.url;
+	   ConfigurationHolder.config.log4j.appenders.dataBaseAppender.user = ConfigurationHolder.config.dataSource.username;
+     	ConfigurationHolder.config.log4j.appenders.dataBaseAppender.password = ConfigurationHolder.config.dataSource.password;
+        try {
+			
+			def applicationConfList = ApplicationConf.list()
+			if(applicationConfList.isEmpty()){
+				new ApplicationConf().save();
+			}
+        
+          def ctx = (ApplicationContext) servletContext.getAttribute(GrailsApplicationAttributes.APPLICATION_CONTEXT)
+          WebApplicationContext appCtx = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext)
+          def clientDataloadService = appCtx.getBean('clientDataLoadService')
+
+			// Check if data exists
+			Client c = Client.get(1)
+			if ( c ){
+				if(!Role.findByAuthority(Role.ROLE_TRIAL_USER)){
+					Role trial_user_role = new Role(authority: Role.ROLE_TRIAL_USER, description: "Trial User").save()
+				}
+				try{
+					
+					List<FormAdmin> formAdminList = FormAdmin.list()
+//					Client.list().each{client->
+//						TenantUtils.doWithTenant("${client.id}".toInteger()){
+//							List<FormAdmin> tenantFormAmdinss = formAdminList.findAll{"${it.form.tenantId}"=="${client.id}"}
+//							if("${client.id}" == "9"){
+//								println "coming here"
+//							}
+//							def ruleSets = RuleSet.findAllWhere(_action:RuleSet.SUBSCRIBE)
+//							ruleSets.each{ruleSet->
+//								FormAdmin ruleFormAdmin
+//								if(ruleSet.status == RuleSet.ACTIVE && ruleSet.rule){
+//									def counter = 0
+//									for(Rule rule:ruleSet.rule.sort{it._order}){
+//										if(rule.status == "Active"){
+//											if(!ruleFormAdmin){
+//												ruleFormAdmin = tenantFormAmdinss.find{"${it.form.id}" == "${rule.className}"}
+//											}
+//											if(ruleFormAdmin){//check if form or formadmin exists for this rule or that is deleted
+//												def ruleField = ruleFormAdmin.form.fieldsList.find{"${it.id}" == rule.attributeName}
+//												if(ruleField){//if Field on which condition is to be applied exists
+//													NotifyCondition notiCond = new NotifyCondition()
+//													notiCond.fieldId = ruleField.id
+//													notiCond.op = rule.operator
+//													notiCond.val = rule.value
+//													notiCond.condOp = rule._condition
+//													notiCond.sequence = counter++
+//													ruleFormAdmin.conditions << notiCond
+//												}
+//											}else{
+//												break;
+//											}
+//										}
+//									}
+//									if(ruleFormAdmin){
+//										println "Form Admin Id : "+ruleFormAdmin.id
+//										if(ruleFormAdmin.id == 7){
+//											println "Coming here also"
+//										}
+//										ruleFormAdmin.formSubmissionAction = "Feed"
+//										if(ruleSet.resultInstance){
+//											def formSubmissionTo
+//											if(ruleSet.resultClass == RuleSet.USER){
+//												def ruleUser = User.findByUsername(ruleSet.resultInstance)
+//												if(ruleUser)
+//													formSubmissionTo = [ruleUser]
+//											}else if(ruleSet.resultClass == RuleSet.GROUP){
+//												def ruleGroup = GroupDetails.withCriteria(){
+//													eq "groupName",ruleSet.resultInstance
+//													user{}
+//												}
+//												if(ruleGroup?.user)
+//													formSubmissionTo = ruleGroup.user
+//											}else if(ruleSet.resultClass == RuleSet.DEPARTMENT){
+//												def ruleDept = DropDown.findByTypeAndName(com.oneapp.cloud.core.DropDownTypes.DEPARTMENT,ruleSet.resultInstance)
+//												formSubmissionTo = User.createCriteria().list(){
+//													department{
+//														eq 'id',ruleDept.id
+//													}
+//												}
+//											}else if(ruleSet.resultClass == RuleSet.ROLE){
+//												def allUsers = User.findAllByUserTenantId("${client.id}".toInteger())
+//												formSubmissionTo = allUsers.findAll{it.authorities*.description == ruleSet.resultInstance}
+//											}
+//											if(formSubmissionTo){
+//												ruleFormAdmin.formSubmissionTo = []
+//												ruleFormAdmin.formSubmissionTo = formSubmissionTo
+//											}
+//											ruleFormAdmin.save(flush:true)
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//					formAdminList.each{FormAdmin formAdmin->
+//						if(formAdmin.formLogin=='Login'){
+//							def tenantId = formAdmin.form.tenantId
+//							def thisTenantAllUsers = User.findAllByUserTenantId(tenantId)
+//							thisTenantAllUsers = thisTenantAllUsers.findAll{it.authorities*.authority.contains(Role.ROLE_USER)}
+//							formAdmin.publishedWith = thisTenantAllUsers
+//						}
+//					}
+					def plan = Plan.list()
+					if(plan.size() == 0){
+						Plan basicPlan = new Plan(
+							amount:9.95,
+							description: "Basic - \$9.95/month",
+							form:2,
+							maxStorage:2048,
+							maxUsers:5,
+							planName:"Basic",
+							maxEmailAccount:2
+							).save()
+							
+						Plan professionalPlan = new Plan(
+							amount:19.95,
+							description: "Professional - \$19.95/month",
+							form:5,
+							maxStorage:5120,
+							maxUsers:10,
+							planName:"Basic",
+							maxEmailAccount:5
+							).save()
+							
+						Plan enterprisePlan = new Plan(
+							amount:29.95,
+							description: "Enterprise - \$29.95/month",
+							form:10,
+							maxStorage:10240,
+							maxUsers:15,
+							planName:"Basic",
+							maxEmailAccount:15
+							).save()
+					}	
+				}catch(Exception e){
+					println "Error in bootstrap: "+e
+				}
+				return
+			}
+			
+		    // Create Client
+			UUID uuid = UUID.randomUUID()
+			String key= uuid
+            Client client_default = new Client(name: "One App Cloud", currency: 'USD',licenseCollaboration:true,licenseForms:true,consumerKey:key.replaceAll("-","")).save()
+			
+   
+            // Create roles
+            Role user_role = new Role(authority: Role.ROLE_USER, description: "User").save()
+            Role admin_role = new Role(authority: Role.ROLE_SUPER_ADMIN, description: "Super User").save()
+            Role client_admin_role = new Role(authority: Role.ROLE_ADMIN, description: "Client Administrator").save()
+            Role manager_role = new Role(authority: Role.ROLE_HR_MANAGER, description: "HR Manager").save()
+			Role trial_user_role = new Role(authority: Role.ROLE_TRIAL_USER, description: "Trail User").save()
+			/*
+            Role project_manager_role = new Role(authority: Role.ROLE_PROJECT_MANAGER, description: "Project Manager").save()
+            Role approver_role = new Role(authority: Role.ROLE_APPROVER, description: "Approver").save()
+            Role observer_role = new Role(authority: Role.ROLE_OBSERVER, description: "Observer").save()
+			*/
+            // Create users
+            println "client ${client_default.id}"
+            User admin = new User(
+                    username: "admin@oneappcloud.com",
+                    password: springSecurityService.encodePassword("admin"),
+                    enabled: true,
+                    userTenantId: client_default.id,
+                    firstName: "Jack",
+                    lastName: "Smith",
+                    hourlyRate: 100,
+                    dob: new Date(),
+                    title:"CTO",
+                    hourlyRateCurr: 'USD'
+            ).save(failOnError: true)
+             println "user ${admin.userTenantId}"
+	        clientDataloadService.loadInitialData(client_default.id, admin)
+
+            User manager 
+           // for ( int i=0; i < 4; i++){
+            manager = new User(
+                    username: "manager@oneappcloud.com",
+                    password: springSecurityService.encodePassword("manager"),
+                    enabled: true,
+                    userTenantId: client_default.id,
+                    hourlyRate: 100,
+                    firstName: "John",
+                    lastName: "Kahn",
+                    dob: new Date() + 15,
+                    reportsTo:admin,
+                    title:"EVP",
+                    hourlyRateCurr: 'USD'
+            ).save()
+           // }
+           User user   
+           // for ( int i=0; i < 4; i++){
+				user = new User(
+                    username: "user@oneappcloud.com",
+                    password: springSecurityService.encodePassword("user"),
+                    enabled: true,
+                    userTenantId: client_default.id,
+                    hourlyRate: 100,
+                    firstName: "Vladimir",
+                    lastName: "Phelaagine",
+                    hourlyRateCurr: 'USD',
+                    dob: new Date() - 7,
+                    title:"Engineer",
+                    reportsTo:manager
+            ).save()
+			User publicUser
+			// for ( int i=0; i < 4; i++){
+				 publicUser = new User(
+					 username: "publicuser@oneappcloud.com",
+					 password: springSecurityService.encodePassword(""),
+					 enabled: false,
+					 userTenantId: 0,
+					 hourlyRate: 100,
+					 firstName: "Public",
+					 lastName: "User"
+			 ).save()
+	
+            UserRole userRole = new UserRole(user: user, role: user_role).save()
+            UserRole adminRole = new UserRole(user: admin, role: admin_role).save()
+            UserRole managerRole = new UserRole(user: manager, role: manager_role).save()
+			
+			
+			
+
+		ActivityFeedConfig afc =new ActivityFeedConfig()
+		afc.configName = "content"
+		afc.createdBy = user
+		afc.tenantId = client_default.id
+       
+       } catch (Exception ex) {
+		    log.error ex
+        }
+    	//}
+
+    }
+    def destroy = {
+    }
+
+
+}

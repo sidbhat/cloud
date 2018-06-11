@@ -1,0 +1,25 @@
+<plugin name='excel-import' version='0.3' grailsVersion='1.2.0 &gt; *'>
+  <author>Jean Barmash</author>
+  <authorEmail>Jean.Barmash@gmail.com</authorEmail>
+  <title>Excel Importer Using Apache POI</title>
+  <description>\
+	   Excel-Import plugin uses Apache POI [http://poi.apache.org/] library (v 3.6) to parse Excel files.  
+      It's useful for either bootstrapping data, or when you want to allow your users to enter some data using Excel spreadsheets. 
+</description>
+  <documentation>http://grails.org/plugin/excel-import</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>UrlMappings</resource>
+  </resources>
+  <dependencies>
+    <resolvers>
+      <resolver type='grailsPlugins' name='grailsPlugins' />
+      <resolver type='mavenLocal' />
+      <resolver type='mavenCentral' />
+    </resolvers>
+    <dependency group='org.apache.poi' name='poi' version='3.6' conf='compile' transitive='true' />
+    <dependency group='org.apache.poi' name='poi-contrib' version='3.6' conf='compile' transitive='true' />
+    <dependency group='org.apache.poi' name='poi-scratchpad' version='3.6' conf='compile' transitive='true' />
+  </dependencies>
+  <behavior />
+</plugin>

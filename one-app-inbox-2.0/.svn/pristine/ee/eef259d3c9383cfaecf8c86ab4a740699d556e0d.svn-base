@@ -1,0 +1,184 @@
+.uniForm legend {
+font-weight:700;
+font-size:100%;
+margin:0;
+padding:1.5em 0;
+}
+
+.uniForm .ctrlHolder {
+border-bottom:1px solid #efefef;
+padding:1em;
+}
+
+.uniForm .ctrlHolder.focused {
+background:#fffcdf;
+}
+
+.uniForm .buttonHolder {
+background:#efefef;
+text-align:right;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+margin:1.5em 0 0;
+padding:1.5em;
+}
+
+.uniForm .buttonHolder .primaryAction {
+line-height:1;
+background:#254a86;
+border:1px solid #163362;
+font-size:12px;
+font-weight:700;
+color:#fff;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+box-shadow:1px 1px 0 #fff;
+-webkit-box-shadow:1px 1px 0 #fff;
+-moz-box-shadow:1px 1px 0 #fff;
+text-shadow:-1px -1px 0 rgba(0,0,0,.25);
+padding:10px 22px;
+}
+
+.uniForm .buttonHolder .primaryAction:active {
+position:relative;
+top:1px;
+}
+
+.uniForm .secondaryAction {
+text-align:left;
+}
+
+.uniForm button.secondaryAction {
+background:transparent;
+border:none;
+color:#777;
+margin:1.25em 0 0;
+padding:0;
+}
+
+.uniForm .inlineLabels label em,.uniForm .inlineLabels .label em {
+font-style:normal;
+font-weight:700;
+}
+
+.uniForm label small {
+font-size:.75em;
+color:#777;
+}
+
+.uniForm .textInput,.uniForm textarea {
+border:1px solid #aaa;
+background:#fff;
+padding:4px 2px;
+}
+
+.uniForm textarea {
+height:12em;
+}
+
+.uniForm ul li label {
+font-size:.85em;
+}
+
+.uniForm .ctrlHolder .textInput:focus,.uniForm .ctrlHolder textarea:focus {
+outline:none;
+}
+
+.uniForm .formHint {
+font-size:.85em;
+color:#777;
+}
+
+.uniForm .inlineLabels .formHint {
+padding-top:.5em;
+}
+
+.uniForm .ctrlHolder.focused .formHint {
+color:#333;
+}
+
+.uniForm #errorMsg {
+background:#ffdfdf;
+border:1px solid #f3afb5;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+margin:0 0 1.5em;
+padding:0 1.5em;
+}
+
+.uniForm #errorMsg ol {
+margin:0 0 1.5em;
+padding:0;
+}
+
+.uniForm #errorMsg ol li {
+background:#f6bec1;
+position:relative;
+font-size:.85em;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+margin:0 0 3px 1.5em;
+padding:7px;
+}
+
+.uniForm .ctrlHolder.error,.uniForm .ctrlHolder.focused.error {
+background:#ffdfdf;
+border:1px solid #f3afb5;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+}
+
+.uniForm .ctrlHolder.error input.error,.uniForm .ctrlHolder.error select.error,.uniForm .ctrlHolder.error textarea.error {
+color:#af4c4c;
+margin:0 0 6px;
+padding:4px;
+}
+
+.uniForm #okMsg {
+background:#c8ffbf;
+border:1px solid #a2ef95;
+text-align:center;
+border-radius:4px;
+-webkit-border-radius:4px;
+-moz-border-radius:4px;
+-o-border-radius:4px;
+-khtml-border-radius:4px;
+margin:0 0 1.5em;
+padding:1.5em;
+}
+
+.uniForm #okMsg p {
+margin:0;
+}
+
+.uniForm .col {
+margin-bottom:1.5em;
+}
+
+.uniForm .col.first {
+width:49%;
+float:left;
+clear:none;
+}
+
+.uniForm .col.last {
+width:49%;
+float:right;
+clear:none;
+margin-right:0;
+}

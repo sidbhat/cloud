@@ -1,0 +1,142 @@
+/******************************************************************************
+ * [ NIKKISHI CONFIDENTIAL ]                                                  *
+ *                                                                            *
+ *    Copyright (c) 2011.  Nikkishi LLC                                       *
+ *    All Rights Reserved.                                                    *
+ *                                                                            *
+ *   NOTICE:  All information contained herein is, and remains                *
+ *   the property of Nikkishi LLC and its suppliers,                          *
+ *   if any.  The intellectual and technical concepts contained               *
+ *   herein are proprietary to Nikkishi LLC and its                           *
+ *   suppliers and may be covered by U.S. and Foreign Patents,                *
+ *   patents in process, and are protected by trade secret or copyright law.  *
+ *   Dissemination of this information or reproduction of this material       *
+ *   is strictly forbidden unless prior written permission is obtained        *
+ *   from Nikkishi LLC.                                                       *
+ ******************************************************************************/
+dataSource {
+    pooled = true
+    driverClassName = "org.hsqldb.jdbcDriver"
+    username = "sa"
+    password = ""
+}
+hibernate {
+    cache.use_second_level_cache = true
+    cache.use_query_cache = true
+    cache.provider_class = 'net.sf.ehcache.hibernate.EhCacheProvider'
+}
+// environment specific settings
+environments {
+
+	/***
+		Development instance uses oneapp_dev schema
+	***/
+    development {
+       dataSource {
+            driverClassName = "com.mysql.jdbc.Driver"
+            username = "root"
+            password = "oneapp@123"
+            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+            dbCreate = "update"
+            pooled=true
+     		properties { 
+     			maxActive=10
+     			initialSize=5
+     		    maxIdle = 25
+        		minIdle = 5
+        		initialSize = 5
+        		minEvictableIdleTimeMillis = 60000
+        		timeBetweenEvictionRunsMillis = 60000
+        		maxWait = 10000
+        		removeAbandonedTimeout=60
+        		removeAbandoned=true
+        		validationQuery = "SELECT 1"
+     		}
+            url = "jdbc:mysql://localhost:3306/oneapp_dev?useUnicode=true&characterEncoding=utf8&autoReconnect=true"
+      
+       } 
+       
+    }
+    /***
+		Development instance uses oneapp_dev schema
+	***/
+    devserver {
+    dataSource {
+            driverClassName = "com.mysql.jdbc.Driver"
+            username = "root"
+            password = "oneapp@123"
+            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+            dbCreate = "update"
+            pooled=true
+     		properties { 
+     			maxActive=10
+     			initialSize=5
+     		    maxIdle = 25
+        		minIdle = 5
+        		initialSize = 5
+        		minEvictableIdleTimeMillis = 60000
+        		timeBetweenEvictionRunsMillis = 60000
+        		maxWait = 10000
+        		removeAbandonedTimeout=60
+        		removeAbandoned=true
+        		validationQuery = "SELECT 1"
+     		}
+            url = "jdbc:mysql://demo.oneappcloud.com:3306/oneapp_dev?useUnicode=true&characterEncoding=utf8&autoReconnect=true"
+      
+       } 
+    }
+    /***
+		Demo instance uses oneapp schema
+	***/
+   demo {
+        dataSource {
+            driverClassName = "com.mysql.jdbc.Driver"
+            username = "root"
+            password = "oneapp@123"
+            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+            dbCreate = "update"
+            pooled=true
+     		properties { 
+     			maxActive=10
+     			initialSize=5
+     		    maxIdle = 25
+        		minIdle = 5
+        		initialSize = 5
+        		minEvictableIdleTimeMillis = 60000
+        		timeBetweenEvictionRunsMillis = 60000
+        		maxWait = 10000
+        		removeAbandonedTimeout=60
+        		removeAbandoned=true
+        		validationQuery = "SELECT 1"
+     		}
+            url = "jdbc:mysql://demo.oneappcloud.com:3306/oneapp_demo?useUnicode=true&characterEncoding=utf8&autoReconnect=true" 
+       } 
+ 	}
+ 	/***
+		Production server uses oneapp schema on the production machine
+	***/
+    production {
+        dataSource {
+            driverClassName = "com.mysql.jdbc.Driver"
+            username = "root"
+            password = "oneapp@123"
+            dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+            dbCreate = "update"
+            pooled=true
+     		properties { 
+     			maxActive=10
+     			initialSize=5
+     		    maxIdle = 25
+        		minIdle = 5
+        		initialSize = 5
+        		minEvictableIdleTimeMillis = 60000
+        		timeBetweenEvictionRunsMillis = 60000
+        		maxWait = 10000
+        		removeAbandonedTimeout=60
+        		removeAbandoned=true
+        		validationQuery = "SELECT 1"
+     	     }
+            url = "jdbc:mysql://localhost:3306/oneapp?useUnicode=true&characterEncoding=utf8&autoReconnect=true" 
+   		 }
+    }
+}

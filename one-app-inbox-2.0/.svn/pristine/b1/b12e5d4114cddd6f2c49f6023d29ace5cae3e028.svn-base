@@ -1,0 +1,265 @@
+package com.oneapp.cloud.core
+
+import Form;
+import FormAdmin;
+
+import java.text.SimpleDateFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import grails.converters.JSON
+import grails.plugin.multitenant.core.util.TenantUtils;
+
+import org.grails.formbuilder.Form
+import org.grails.formbuilder.FormAdmin
+import org.grails.formbuilder.Field
+import org.grails.formbuilder.NotifyCondition
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.codehaus.groovy.grails.plugins.web.taglib.ApplicationTagLib
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+/**
+ *
+ * @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+class NotiService {
+	def grailsApplication
+	def springSecurityService
+	def utilService
+	def sessionFactory
+	boolean transactional = false
+	private ApplicationTagLib g
+	
+	private static Pattern pattern;
+	private static Matcher matcher;
+	private static final String EMAIL_PATTERN = '^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$';
+	
+	void setApplicationContext(ApplicationContext applicationContext) {
+		g = applicationContext.getBean(ApplicationTagLib)
+	}
+	
+	def notifyFormInstance(FormAdmin formAdmin,def domainInstance, def uniqueId, def action){
+		if(formAdmin.formSubmissionTo || (formAdmin.formSubmissionAction=='Email' && (formAdmin.formEmailField || formAdmin.formSubmissionToExternal))){
+			try{
+				boolean sendFeed=true
+				
+				//TODO Need to test it. as this is changed looking into API thing
+				//def currentUser = springSecurityService.currentUser
+				//If error comes we can do another thing: User.get(domainInstance.created_by_id) and User.get(domainInstance.updated_by_id)
+				def currentUser = (action == 'create')?(domainInstance.createdBy):(action == 'update'?domainInstance.udpatedBy:null)
+				if(formAdmin.specialCondition && formAdmin.conditions){
+					sendFeed = checkNotiConds(formAdmin,domainInstance)
+				}
+				if(sendFeed && formAdmin.formSubmissionAction=='Feed' && (action=='create' && formAdmin.notiOnCreate)){
+					if(currentUser && currentUser?.userTenantId>0){
+						createFeed(domainInstance,formAdmin,currentUser)
+					}else{
+						TenantUtils.doWithTenant(formAdmin.form.tenantId){
+							createFeed(domainInstance,formAdmin,User.findByUsername("publicuser@oneappcloud.com"))
+						}
+					}
+				}else if(formAdmin.formSubmissionAction=='Email'){
+					if(currentUser && currentUser?.userTenantId>0){
+						sendMail(domainInstance,formAdmin,currentUser,uniqueId,action,sendFeed)
+					}else{
+						TenantUtils.doWithTenant(formAdmin.form.tenantId){
+							sendMail(domainInstance,formAdmin,User.findByUsername("publicuser@oneappcloud.com"),uniqueId,action,sendFeed)
+						}
+					}
+				}
+			}catch(Exception e){println "NotiService-notifyFormInstance: "+e}
+		}
+	}
+	
+	def checkNotiConds(FormAdmin formAdmin,domainInstance){
+		Boolean prevCond,currentCond
+		def prevCondOp,dateFormatter
+		def fields = formAdmin.form.fieldsList
+		for(NotifyCondition condition:formAdmin.conditions){
+			Field notiField = fields.find{it.id == condition.fieldId}
+			if(notiField){
+				try{
+					def notiVal,currentVal
+					def settings = JSON.parse(notiField.settings)
+					if(notiField.type=='SingleLineNumber' || (notiField.type=='FormulaField' && settings.en.newResultType == 'NumberResult')){
+						notiVal = condition.val.toBigDecimal()
+					}else if(notiField.type=='SingleLineDate' || (notiField.type=='FormulaField' && settings.en.newResultType == 'DateResult')){
+						dateFormatter = dateFormatter?:(new SimpleDateFormat(grailsApplication.config.format.date))
+						notiVal = dateFormatter.parse(condition.val)
+					}else{
+						notiVal = condition.val
+					}
+					currentCond = operateCond(domainInstance."${notiField.name}",condition.op,notiVal)
+					if(prevCondOp){
+						if(prevCondOp == "OR"){
+							prevCond = prevCond || currentCond
+						}else if(prevCondOp == "AND"){
+							prevCond = prevCond && currentCond
+						}
+					}else{
+						prevCond = currentCond
+					}
+					if(prevCond && condition.condOp=="OR")return true
+					if(!prevCond && condition.condOp=="AND")return false
+					prevCondOp = condition.condOp
+				}catch(Exception e){}
+			}
+		}
+		return prevCond?:false
+	}
+	
+	def sendMail(def domainInstance,FormAdmin formAdmin,User currentUser,def uniqueId,def action,def sendFeed){
+		setApplicationContext(grailsApplication.mainContext)
+		def formSettings = JSON.parse(formAdmin.form.settings)
+		def formName = formSettings?.en?.name?:formAdmin.form.name
+		def description = formSettings?.en?.description?:''
+		def templateText = formEmailBody(action,formName,
+			g.render(template:'/activityFeed/formDetailsEmail', model:[notiForm:formAdmin.form,notiDI:domainInstance]), uniqueId,currentUser)
+		if(sendFeed){//Notification email to internal users: will only be sent when the special conditions are passed
+			if((action=='create' && formAdmin.notiOnCreate) || (action=='update' && formAdmin.notiOnUpdate)){
+				formAdmin.formSubmissionTo.each{usr->
+					AsynchronousEmailStorage async = new AsynchronousEmailStorage()
+					async.emailFrom =  "${grailsApplication.config.grails.plugins.springsecurity.ui.register.emailFrom}"
+					async.emailTO = "${usr.username}"
+					async.emailSubject="${action=='create'?'New Entry':'Entry Updated'} for ${formName} ${uniqueId?('(Unique ID: '+uniqueId+')'):''}"
+					async.emailData=templateText.replace("<@user>",usr?.firstName)
+					//"<span style=\"font-family: 'Helvetica Neue',Helvetica,Helvetica,Arial,sans-serif;vertical-align:top;color:#455560;font-weight:700;margin:0;font-size: 14px\">Dear ${usr?.firstName},<br><br>You have ${action=='create'?'a new form submission':'an entry updated'} for your form <b>${formName}</b> by: <b>${currentUser.firstName?:''} ${currentUser.lastName?:''}</b>${currentUser.userTenantId!=0?('&lt;'+currentUser.username+'&gt;'):''}<br><br>"+templateText+"<br><br>${uniqueId?('You can search this entry with its unique-id: '+uniqueId+'<br>'+'Click <a href=\"'+ConfigurationHolder.config.grails.serverURL+'/PF/publicSearch\">here</a> to search.<br><br>'):''}Thank you,<br>Your One App Team!</span>"
+					async.isHtml=true
+					async.emailSentStatus = AsynchronousEmailStorage.NOT_ATTEMPT
+					async.save()
+				}
+			}
+		}
+		
+		//confirmation will go unconditionally, just on the basis of confOnCreate and confOnUpdate
+		if(formAdmin.formEmailField && ((action=='create' && formAdmin.confOnCreate) || (action=='update' && formAdmin.confOnUpdate))){
+			pattern = Pattern.compile(EMAIL_PATTERN)
+			formAdmin.formEmailField.each{formEmailField->
+				if(formEmailField){
+					def emailField = Field.read(formEmailField)
+					def emailTo = emailField?(domainInstance."${emailField.name}"):null
+					if(emailTo){
+						matcher = pattern.matcher(emailTo)
+						if(matcher.matches()){
+							AsynchronousEmailStorage async = new AsynchronousEmailStorage()
+							async.emailFrom =  "${grailsApplication.config.grails.plugins.springsecurity.ui.register.emailFrom}"
+							async.emailTO = "${emailTo}"
+							async.emailSubject="${action=='create'?'New Entry':'Entry Updated'} for ${formName} ${uniqueId?('(Unique ID: '+uniqueId+')'):''}"
+							async.emailData=templateText.replace("<@user>","User")
+							//"Dear User,<br><br>You have ${action=='create'?'a new form submission':'an entry updated'} for form <b>${formName}</b> by: <b>${currentUser.firstName?:''} ${currentUser.lastName?:''}</b>${currentUser.userTenantId!=0?('&lt;'+currentUser.username+'&gt;'):''}<br><br>"+templateText+"<br><br>${uniqueId?('You can search this entry with its unique-id: '+uniqueId+'<br>'+'Click <a href=\"'+ConfigurationHolder.config.grails.serverURL+'/PF/publicSearch\">here</a> to search.<br><br>'):''}Thank you,<br>Your One App Team!"
+							async.isHtml=true
+							async.emailSentStatus = AsynchronousEmailStorage.NOT_ATTEMPT
+							async.save()
+						}else{
+							log.error "NotificationService: Could not send mail to value of this form's Email field selected in settings. FormId: "+formAdmin.form.id+", instance id: "+domainInstance.id
+						}
+					}else{
+						log.error "NotificationService: Could not send mail to value of this form's Email field selected in settings. FormId: "+formAdmin.form.id+", instance id: "+domainInstance.id
+					}
+				}
+			}
+		}
+		if(sendFeed){//Notification email to external email ids: will only be sent when the special conditions are passed
+			if(formAdmin.formSubmissionToExternal && ((action=='create' && formAdmin.extNotiOnCreate) || (action=='update' && formAdmin.extNotiOnUpdate))){
+				def emailIds = formAdmin.formSubmissionToExternal.split(',')
+				pattern = Pattern.compile(EMAIL_PATTERN)
+				emailIds.each{emailTo->
+					emailTo = emailTo.trim()
+					if(emailTo){
+						matcher = pattern.matcher(emailTo)
+						if(matcher.matches()){
+							AsynchronousEmailStorage async = new AsynchronousEmailStorage()
+							async.emailFrom =  "${grailsApplication.config.grails.plugins.springsecurity.ui.register.emailFrom}"
+							async.emailTO = "${emailTo}"
+							async.emailSubject="${action=='create'?'New Entry':'Entry Updated'} for ${formName} ${uniqueId?('(Unique ID: '+uniqueId+')'):''}"
+							async.emailData=templateText.replace("<@user>","User")
+							//"Dear User,<br><br>You have ${action=='create'?'a new form submission':'an entry updated'} for form <b>${formName}</b> by: <b>${currentUser.firstName?:''} ${currentUser.lastName?:''}</b>${currentUser.userTenantId!=0?('&lt;'+currentUser.username+'&gt;'):''}<br><br>"+templateText+"<br><br>${uniqueId?('You can search this entry with its unique-id: '+uniqueId+'<br>'+'Click <a href=\"'+ConfigurationHolder.config.grails.serverURL+'/PF/publicSearch\">here</a> to search.<br><br>'):''}Thank you,<br>Your One App Team!"
+							async.isHtml=true
+							async.emailSentStatus = AsynchronousEmailStorage.NOT_ATTEMPT
+							async.save()
+						}else{
+							log.error "NotificationService: Could not send mail to value of this form's external Email given in settings. FormId: "+formAdmin.form.id+", instance id: "+domainInstance.id
+						}
+					}
+				}
+			}
+		}
+		try{
+			sessionFactory.getCurrentSession().flush()
+		}catch(Exception e){}
+	}
+	
+	def createFeed(def domainInstance,FormAdmin formAdmin,def currentUser){
+		Form form = formAdmin.form
+		def formInstanceName = form.name+"."+form.name
+		def activityFeedConfig
+		ActivityFeed activityFeed = new ActivityFeed()
+		if(formInstanceName){
+			activityFeedConfig =  ActivityFeedConfig.findByClassName(formInstanceName)
+			if(!activityFeedConfig){
+				def userInstance = currentUser
+				def dateCreated = new Date()
+				activityFeedConfig = new ActivityFeedConfig(createdBy: userInstance, shareType: formAdmin.formType, configName: formInstanceName,className:formInstanceName, dateCreated: dateCreated, lastUpdated: dateCreated)
+				activityFeedConfig.save()
+			}
+		}
+		activityFeed.shareId = domainInstance.id
+		activityFeed.config = activityFeedConfig
+		formAdmin.formSubmissionTo.each{usr->
+			activityFeed.addToSharedUsers(usr)
+		}
+		activityFeed.feedState = ActivityFeed.ACTIVE
+		def mess = "Click here to view ${activityFeed.config.shareType.toLowerCase()} - ${grailsApplication.config.grails.serverURL}/formViewer/edit/${activityFeed.shareId}?formId=${form.id}"
+		activityFeed.activityContent = utilService.convertURLToLink(mess+"<br/>",false)
+		activityFeed.createdBy = currentUser
+		activityFeed.dateCreated = new Date()
+		activityFeed.lastUpdated = new Date()
+		activityFeed.save()
+		if (activityFeed?.config?.shareType){
+			def formInstance = JSON.parse(form?.settings)
+			def formName = formInstance.en.name
+			if(formName == null || formName == '')
+				formName = form.name
+			activityFeed.addTag(formName.toLowerCase())
+			def infoMessage = "Form entry of "+formName+" shared with you"
+			def activityNotification = new ActivityNotification(actionBy:springSecurityService.currentUser,userFeedState:infoMessage,actionOnFeed:activityFeed, actionTime:activityFeed.dateCreated)
+			activityNotification.save(flush:true)
+		}
+	}
+	
+	def operateCond(def v1,def o,def v2){
+		if(o == "<"){
+			return v1 < v2
+		}
+		else if(o == ">"){
+			return v1 > v2
+		}
+		else if(o == "="){
+			return v1 == v2
+		}
+		else if(o == "<="){
+			return v1 <= v2
+		}
+		else if(o == ">="){
+			return v1 >= v2
+		}
+		else if(o == "!="){
+			return v1 != v2
+		}
+		else if(o == "Between"){
+			return false
+		}
+	}
+	def  formEmailBody(String action,String formName,def templateText,String uniqueId, def currentUser){
+		String UUIDsearch=uniqueId?('You can search this entry with its unique-id: '+uniqueId+'<br>'+
+			'Click <a href="'+ConfigurationHolder.config.grails.serverURL+'/PF/publicSearch">here</a> to search.<br><br>'):''
+		return """<span 
+				style="font-family: 'Helvetica Neue',Helvetica,Helvetica,Arial,sans-serif;vertical-align:top;color:#455560;
+				font-weight:700;margin:0;font-size: 14px"
+		  >Dear <@user>,<br><br>You have ${action=='create'?'a new form submission':'an entry updated'} for your form <b>${formName}</b> by: <b
+		  >${currentUser.firstName?:''} ${currentUser.lastName?:''}</b>${currentUser.userTenantId!=0?('&lt;'+currentUser.username+'&gt;'):''}<br><br
+		  >${templateText}<br><br>${UUIDsearch}Thank you,<br>Your One App Team!</span>""" 		
+		}
+}

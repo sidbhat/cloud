@@ -1,0 +1,19 @@
+<plugin name='lang-selector' version='0.3' grailsVersion='1.2.2 &gt; *'>
+  <author>Maximiliano Felix</author>
+  <authorEmail>maxi.felix@gmail.com</authorEmail>
+  <title>Language Selector using Grails i18n support.</title>
+  <description>\
+Simple to use tag, lets you change language of your application. It is based in i18n support provided by Grails.
+</description>
+  <documentation>http://grails.org/plugin/lang-selector</documentation>
+  <resources>
+    <resource>com.mfelix.grails.plugins.langSelector.LangSelectorTagLib</resource>
+    <resource>com.mfelix.grails.plugins.langSelector.StaticConfig</resource>
+  </resources>
+  <dependencies>
+    <resolvers>
+      <resolver type='grailsPlugins' name='grailsPlugins' />
+    </resolvers>
+  </dependencies>
+  <behavior />
+</plugin>

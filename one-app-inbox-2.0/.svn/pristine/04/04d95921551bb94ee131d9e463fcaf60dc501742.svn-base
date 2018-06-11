@@ -1,0 +1,27 @@
+<plugin name='one-app-form-builder-domain' version='0.1' grailsVersion='1.3.7 &gt; *'>
+  <author>Your name</author>
+  <title>Plugin summary/headline</title>
+  <description>\
+Brief description of the plugin.
+</description>
+  <documentation>http://grails.org/plugin/one-app-form-builder-domain</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+    <resource>com.oneapp.cloud.core.Person</resource>
+    <resource>com.oneapp.cloud.core.Role</resource>
+    <resource>com.oneapp.cloud.core.User</resource>
+    <resource>com.oneapp.cloud.core.UserRole</resource>
+    <resource>org.codehaus.groovy.grails.plugins.freemarker.FreeMarkerTemplate</resource>
+    <resource>org.grails.formbuilder.DomainClass</resource>
+    <resource>org.grails.formbuilder.Field</resource>
+    <resource>org.grails.formbuilder.Form</resource>
+    <resource>org.grails.formbuilder.FormAdmin</resource>
+    <resource>org.grails.formbuilder.FormReport</resource>
+    <resource>org.grails.formbuilder.FormTemplate</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

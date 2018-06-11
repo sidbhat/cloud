@@ -1,0 +1,166 @@
+%{----------------------------------------------------------------------------
+  - [ NIKKISHI CONFIDENTIAL ]                                                -
+  -                                                                          -
+  -    Copyright (c) 2011.  Nikkishi LLC                                     -
+  -    All Rights Reserved.                                                  -
+  -                                                                          -
+  -   NOTICE:  All information contained herein is, and remains              -
+  -   the property of Nikkishi LLC and its suppliers,                        -
+  -   if any.  The intellectual and technical concepts contained             -
+  -   herein are proprietary to Nikkishi LLC and its                         -
+  -   suppliers and may be covered by U.S. and Foreign Patents,              -
+  -   patents in process, and are protected by trade secret or copyright law.
+  -   Dissemination of this information or reproduction of this material     -
+  -   is strictly forbidden unless prior written permission is obtained      -
+  -   from Nikkishi LLC.                                                     -
+  ----------------------------------------------------------------------------}%
+<!doctype html>
+<html>
+	<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<meta content="minimum-scale=1.0, width=device-width, maximum-scale=0.6667, user-scalable=no" name="viewport" />
+	
+		<link rel="shortcut icon" href="${resource(dir: 'images', file: 'favicon.ico')}" type="image/x-icon"/>
+		 <link rel="apple-touch-icon" href="${resource(dir: 'images', file: 'one_app_logo.png')}">
+	<link rel="stylesheet" href="${request.getContextPath()}/css/mobile/jquery.mobile-1.0b1.min.css" />
+	 <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'messages.css')}"/>
+	 <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'mobile_style.css')}"/>
+	  <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'button.css')}"/>
+<script src="${request.getContextPath()}/js/mobile/jquery-1.6.1.min.js"></script>
+<script src="${request.getContextPath()}/js/mobile/jquery.mobile-1.0b1.min.js"></script>
+
+<script type="text/javascript" src="${request.getContextPath()}/js/mobile/jquery.mobile.datebox.min.js"></script>
+<script type="text/javascript" src="${request.getContextPath()}/js/mobile/jquery.mobile.datebox.i8n.en.js"></script>
+<script language="JavaScript" src="http://www.geoplugin.net/javascript.gp"></script>
+<link rel="stylesheet" type="text/css" href="${request.getContextPath()}/css/mobile/jquery.mobile.datebox.min.css" /> 
+
+<g:javascript src='jquery/jquery.form.js'/>
+ <script type="text/javascript" src="${resource(dir: 'js', file: 'share.js')}"></script>
+<script type="text/javascript" src="${resource(dir: 'plugins/form-builder-0.1/js', file: 'formula.js')}"></script>
+<script type="text/javascript" src="${request.getContextPath()}/js/rulesMobImpl.js"></script>
+<g:if test="${params.formId=='1766' }" >
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'tables_min.css')}"/>
+</g:if>
+<style type="text/css">
+#field1405578341870ControlHolder ,#field1405419735946ControlHolder{
+	 display: none;
+	}
+</style>
+ <script>
+ $('div:jqmData(role="page")').live('pagebeforeshow',function(){
+       setTimeout(function (){  $("#field1408780320942ControlHolder").hide() },1000);
+	  $('#field1405552867490').blur(function(){
+			if( $(this).val().length>300){
+			     alert("Number characters="+$(this).val().length+". \n Number of Max characters allowed=300.")
+			}
+		})
+		$('#field1405552838265').keyup(function(){
+		     $('#field1405578341870').val( $('#field1405552838265').val() ) 
+		}).blur(function(){
+		  $(this).trigger('keyup')
+		}).trigger('keyup')
+       
+       $('#field1405416927375').blur(function(){
+    	    if( $(this).val().length>200){
+			     alert("Number characters="+$(this).val().length+". \n Number of Max characters allowed=200.")
+			}
+		}) 
+	    if($("#formId").val()=='1766'){
+	    	showTransfortdata()
+		    }
+			if($("#field1405416834697dateMM").val()=="" && $("#field1405416834697dateYYYY").val()==""  && $("#field1405416834697dateDD").val()=="" ){
+				var d = new Date();
+				var dd = d.getDate();
+				var mm = d.getMonth()+1; 
+				var yyyy = d.getFullYear();
+				if(dd<10){dd='0'+dd} 
+				if(mm<10){mm='0'+mm} 
+			$("#field1405416834697dateMM").val(mm)
+			$("#field1405416834697dateYYYY").val(yyyy) 
+			 $("#field1405416834697dateDD").val(dd) 
+			}
+	}); 
+ $(document).ready(function () { 
+	 $('div').live('pagehide', function (event, ui) { 
+	        var $this = $(this); 
+	        if ($this.attr('ID') !== undefined && $this.attr('data-cache') !== undefined && $this.attr('data-cache') == "never") { 
+	            var page = $this.attr('ID'); 
+	            $(document.getElementById(page)).remove(); 
+	        } 
+	    });
+
+	 })
+ 
+
+ function showMessage(){
+		$('#closeable').show();
+		$('#closeable').fadeOut(10000);
+	}
+    
+ function showTransfortdata(){
+	 setTimeout(function (){
+		 $('div.ui-btn').hide()
+         $("#field1408780320942ControlHolder").hide()
+		 },1000);
+	 $('#field1405419726005').keyup(function(){
+			if($('#field1405419726005').val().length<2){
+			 return false
+			}
+			$.ajax({
+				type: 'GET',
+				url: '/one-app-cloud/PF/lookUp?field=20087&formId=1766&term='+$('#field1405419726005').val(),
+				success: function (data, textStatus) {
+					 var isHtml=""
+					 for(var ix=0;ix<data.length;ix++){ 
+						  isHtml=isHtml+"<tr class="+(ix%2==0?'even':'odd')+"><td><a href='https://app.oneappcloud.com/one-app-cloud/PF/edit/"+data[ix].wholeObj.domid+"?formId=1767' target='_blank'> "+data[ix].wholeObj.field1405552812045+"</a></td><td>"+
+								   data[ix].wholeObj.field1405552828520+"</td><td>"+
+								   data[ix].wholeObj.field1405552838265+"</td></tr>"
+						}
+					if(data.length==0){
+					   isHtml='<tr class="odd"><td valign="top" colspan="3" class="dataTables_empty" title="No data available in table">Not found <a href="https://app.oneappcloud.com/one-app-cloud/PF/create?formId=1767" target="_blank"  >Click here to add new</a></td></tr>'
+					}
+					$('#field1405419775774ControlHolder tbody').html(isHtml)
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					alert('Error in Enquiry Form. Error code: ' + textStatus);
+				}
+			});
+		}).blur(function(){
+		 $(this).trigger('keyup')
+		})
+	}
+ 
+ </script>
+ <style type="text/css">
+ .ui-slider .ui-slider-handle,.slider .ui-state-focus{width:34px;height:36px;border:0px;background:transparent;background-image:url(${request.getContextPath()}/plugins/form-builder-0.1/images/face-3.png) !important}
+ .ui-autocomplete-loading{background:url(${request.getContextPath()}/images/ajax-loader.gif) no-repeat right !important}
+ </style>
+		<g:layoutHead/>
+	</head>
+	<body>
+		<div data-role="page" data-cache="never" id="mainpage"  data-theme="b">
+			<g:if test="${flash.message}">
+			 		<div id="closeable" class="message success closeable" style="padding:0px 5px 5px 15px;position: absolute;right:0px;left:0;margin:auto;width:170px;top:50px;font-weight:bold;display: none;z-index:1000;font-size:14px;">
+			             <p style="text-align:center;">
+			                 <g:message code="${flash.message}" args="${flash.args}" default="${flash.defaultMessage}"/>
+				            <% if ( tagFilter !=null ) {%>
+				                		${tagFilter}
+				             <%}%>
+			             </p>
+			         </div>
+			          <script>
+			          	$(document).ready(function(){
+				          	setTimeout("showMessage()",500);
+				          	});
+			             	
+			             </script>
+			        
+			    </g:if>
+			    <div id="pageMessageRule" class="message success closeable" style="padding:0px 5px 5px 15px;position: absolute;right:0px;left:0;margin:auto;width:170px;top:50px;font-weight:bold;display: none;z-index:1000;font-size:14px;">
+			    </div>
+			         
+			    
+			<g:layoutBody/>
+		</div>
+	</body>
+</html>

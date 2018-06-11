@@ -1,0 +1,237 @@
+.ruleConditions .ruleCondition:first-child .remRuleCond{
+	display:none;
+}
+.ruleCondition .button{
+	padding: 0;
+	width: 26px;
+	height: 26px;
+	border-radius: 12px;
+}
+.allTypeRules table.fieldRuleTable{
+	border-collapse:collapse;
+	width:100%;
+}
+.allTypeRules table.pageRuleTable{
+	border-collapse:collapse;
+	width:100%;
+}
+.allTypeRules select.rFieldQ{
+	width:200px;
+}
+.allTypeRules select.rOp{
+	width:100px;
+}
+.allTypeRules select.rVal{
+	width:154px;
+}
+.allTypeRules input.rVal{
+	width:140px;
+}
+div.rVal{
+	width:150px;
+	padding:7px;
+}
+.allTypeRules select.sOrH{
+	width:65px;
+}
+.allTypeRules select.rCOp{
+	width:65px;
+}
+.allTypeRules select{
+	margin-bottom:2px;
+}
+.allTypeRules input{
+	margin-bottom:2px;
+}
+.allTypeRules td{
+	vertical-align:top;
+}
+.skipBlock{
+	display: inline-block;
+	position: relative;
+	float: left;
+	padding: 5px 0px 5px 10px;
+}
+tr.fieldRule:first-child td{
+	padding-top:0;
+}
+.ruleCondition:last-child .rCOpD{
+	display:none;
+}
+tr.fieldRule td{
+	border-bottom: 1px dotted #ccc;
+	padding-top:5px;
+	padding-bottom:3px;
+}
+.ruleCondition tr td{
+	border-bottom: none;
+	padding-top:0;
+}
+.allTypeRules .ruleCount{
+	border-radius: 15px;
+	width: 40px;
+	height: 31px;
+/* 	background-color: beige; */
+	text-align:center;
+	vertical-align:middle;
+	margin:auto;
+}
+input.addFieldRule, input.removeFieldRule{
+	border-radius: 9px;
+	width: 38px;
+	height: 30px;
+	/* background-color: beige; */
+	text-align:center;
+	vertical-align:middle;
+	margin:auto;
+}
+input.removeFieldRule{
+	margin-left:5px;
+}
+.allTypeRules .fieldRule .button{
+	padding:0px;
+}
+.allTypeRules .fieldRule .button img{
+	width:40px
+}
+.fieldRuleButtonTd{
+	width: 82px
+}
+.ruleCountTd{
+	width: 41px
+}
+.pageRuleTable select.SHField,.pageRuleTable select.submittedPage{
+	width: 122px
+}
+
+.PostShare {
+	width:85px;
+	float:right;
+}
+.PostShare ul {
+	list-style:none;
+	width:85px;
+	padding:0px;
+	margin:0px;
+}
+.PostShare ul li {
+	width:100%;
+	float:left;
+	padding:0px;
+	margin:0px;
+}
+.PostShare ul li a.ShareMainBtn {
+	background: #f1f1f1;
+	background: -webkit-gradient(linear, left top, left bottom, from(#e9e9e9), to(#d1d1d1));
+	background: -moz-linear-gradient(top, #e9e9e9, #d1d1d1);
+	-pie-background: linear-gradient(top, #e9e9e9, #d1d1d1);
+	border: 1px solid #bbb;
+	color: #555;
+	text-shadow: 0 1px 0 #fff;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-khtml-border-radius: 4px;
+	border-radius: 4px;
+	-moz-box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	-webkit-box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	cursor: pointer;
+	display: inline-block;
+	font: 12px/100% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', Helvetica, Arial, Verdana, sans-serif;
+	padding: 4px 15px;
+	outline: none !important;
+	text-align: center;
+	text-decoration: none;
+	position:relative;
+	-moz-box-sizing: border-box !important;
+	line-height:16px;
+}
+.PostShare ul li a.ShareMainBtn span.arrow-down {
+	background: transparent url(../images/ShareDown.png);
+	display:inline-block;
+	height:6px;
+	margin-left:8px;
+	width:10px;
+}
+.PostShare ul li ul {
+	background: #f1f1f1;
+	background: -webkit-gradient(linear, left top, left bottom, from(#e9e9e9), to(#d1d1d1));
+	background: -moz-linear-gradient(top, #e9e9e9, #d1d1d1);
+	-pie-background: linear-gradient(top, #e9e9e9, #d1d1d1);
+	border: 1px solid #bbb;
+	text-shadow: 0 1px 0 #fff;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-khtml-border-radius: 4px;
+	border-radius: 4px;
+	-moz-box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	-webkit-box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	box-shadow:inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+	display: inline-block;
+	font: 12px/100% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', Helvetica, Arial, Verdana, sans-serif;
+	padding:4px 0px;
+	outline: none !important;
+	text-align: center;
+	text-decoration: none;
+	position:absolute;
+	-moz-box-sizing: border-box !important;
+	line-height:16px;
+	width:84px;
+	float:left;
+	display:none;
+	margin-top:0px;
+}
+.PostShare ul li:hover ul {
+	display:block;
+}
+.PostShare ul li ul li {
+	width:100%;
+	float:left;
+	margin:0px;
+	padding:0px;
+	border-bottom:1px solid #bbb;
+}
+.PostShare ul li ul li a {
+	float:left;
+	width: 82px;
+	padding:6px 7px;
+	font: 12px/100% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', Helvetica, Arial, Verdana, sans-serif;
+	text-align:left;
+	color: #555;
+}
+.PostShare ul li ul li a span {
+/* 	background:url(../images/ShareRightArrow.png) top left no-repeat; */
+	float:right;
+	width:6px;
+	height:10px;
+	margin-top:2px;
+}
+.PostShare ul li.Nobdr {
+	border-bottom:none;
+}
+.PostShare ul li:hover ul li ul {
+	display:none;
+}
+.PostShare ul li ul li ul {
+	width:100px;
+	position:absolute;
+	float:left;
+	z-index:111;
+	margin:0px 0px 0px 84px;
+	display:none;
+}
+.PostShare ul li ul li ul li a {
+	width:86px;
+}
+.PostShare ul li ul li ul li ul {
+	margin:0px 0px 0px 100px;
+}
+.PostShare ul li:hover ul li:hover ul {
+	display:block;
+}
+.PostShare ul li:hover ul li:hover ul li ul {
+	display:none;
+}
+.PostShare ul li:hover ul li:hover ul li:hover ul {
+	display:block;
+}

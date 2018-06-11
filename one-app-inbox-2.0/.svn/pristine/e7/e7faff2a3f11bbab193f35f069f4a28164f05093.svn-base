@@ -1,0 +1,199 @@
+.uniForm {
+position:relative;
+z-index:1;
+margin:0;
+padding:0;
+}
+
+.uniForm fieldset {
+border:none;
+margin:0;
+padding:0;
+}
+
+.uniForm fieldset legend {
+margin:0;
+padding:0;
+}
+
+.uniForm .ctrlHolder,.uniForm .buttonHolder {
+clear:both;
+margin:0;
+padding:0;
+}
+
+.uniForm:after,.uniForm .buttonHolder:after,.uniForm .ctrlHolder:after,.uniForm .ctrlHolder .multiField:after,.uniForm .inlineLabel:after {
+content:".";
+display:block;
+height:0;
+line-height:0;
+font-size:0;
+clear:both;
+min-height:0;
+visibility:hidden;
+}
+
+.uniForm label,.uniForm button {
+cursor:pointer;
+}
+
+.uniForm label,.uniForm .label {
+display:block;
+float:none;
+line-height:100%;
+width:auto;
+margin:0 0 .5em;
+padding:0;
+}
+
+.uniForm .textInput,.uniForm .fileUpload,.uniForm .selectInput,.uniForm select,.uniForm textarea {
+float:left;
+width:53%;
+margin:0;
+}
+
+.uniForm .formHint {
+float:right;
+width:43%;
+clear:none;
+margin:0;
+}
+
+.uniForm ul {
+float:left;
+width:53%;
+margin:0;
+padding:0;
+}
+
+.uniForm ul li {
+list-style:none;
+margin:0 0 .5em;
+}
+
+.uniForm ul li label {
+float:none;
+display:block;
+overflow:visible;
+margin:0;
+}
+
+.uniForm ul.alternate li {
+float:left;
+width:30%;
+margin-right:3%;
+}
+
+.uniForm ul .textInput,.uniForm ul .selectInput,.uniForm ul select,.uniForm ul.alternate .textInput,.uniForm ul.alternate .selectInput,.uniForm ul.alternate select {
+width:98%;
+margin-top:.5em;
+display:block;
+float:none;
+}
+
+.uniForm .inlineLabels label,.uniForm .inlineLabels .label {
+float:left;
+line-height:1;
+position:relative;
+width:32%;
+margin:.3em 2% 0 0;
+padding:0;
+}
+
+.uniForm .inlineLabels .textInput,.uniForm .inlineLabels .fileUpload,.uniForm .inlineLabels .selectInput,.uniForm .inlineLabels select,.uniForm .inlineLabels textarea {
+float:left;
+width:64%;
+}
+
+.uniForm .inlineLabels .formHint {
+clear:both;
+float:none;
+width:auto;
+margin-left:34%;
+position:static;
+}
+
+.uniForm .inlineLabels ul {
+float:left;
+width:66%;
+}
+
+.uniForm .inlineLabels ul li {
+margin:.5em 0;
+}
+
+.uniForm .inlineLabels ul li label {
+float:none;
+display:block;
+width:100%;
+}
+
+.uniForm .inlineLabels ul.alternate li {
+margin-right:3%;
+margin-top:.25em;
+}
+
+.uniForm .inlineLabels label em,.uniForm .inlineLabels .label em {
+display:block;
+float:none;
+position:absolute;
+right:0;
+margin:0;
+}
+
+.uniForm legend {
+color:inherit;
+}
+
+.uniForm .secondaryAction {
+float:left;
+}
+
+.uniForm .inlineLabel input,.uniForm .inlineLabels .inlineLabel input,.uniForm .blockLabels .inlineLabel input,/* class .inlineLabel is depreciated */
+.uniForm label input {
+float:none;
+display:inline;
+border:none;
+margin:0;
+padding:0;
+}
+
+.uniForm .buttonHolder .inlineLabel,.uniForm .buttonHolder label {
+float:left;
+width:auto;
+max-width:60%;
+text-align:left;
+margin:.5em 0 0;
+}
+
+.uniForm .inlineLabels .noLabel ul {
+margin-left:34%;
+}
+
+.uniForm .small {
+width:30%;
+}
+
+.uniForm .medium {
+width:45%;
+}
+
+.uniForm .auto {
+width:auto;
+height:auto;
+}
+
+.uniForm .small,.uniForm .medium,.uniForm .auto {
+margin-right:4px;
+}
+
+.uniForm .col {
+float:left;
+width:50%;
+}
+
+.uniForm ul.alternate li label,.uniForm .inlineLabels ul li label .textInput,.uniForm .inlineLabels ul li label textarea,.uniForm .inlineLabels ul li label select {
+float:none;
+display:block;
+width:98%;
+}

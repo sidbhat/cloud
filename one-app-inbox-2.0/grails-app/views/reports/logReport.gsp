@@ -1,0 +1,438 @@
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="layout" content="main"/>
+    %{----------------------------------------------------------------------------
+  - [ NIKKISHI CONFIDENTIAL ]                                                -
+  -                                                                          -
+  -    Copyright (c) 2011.  Nikkishi LLC                                     -
+  -    All Rights Reserved.                                                  -
+  -                                                                          -
+  -   NOTICE:  All information contained herein is, and remains              -
+  -   the property of Nikkishi LLC and its suppliers,                        -
+  -   if any.  The intellectual and technical concepts contained             -
+  -   herein are proprietary to Nikkishi LLC and its                         -
+  -   suppliers and may be covered by U.S. and Foreign Patents,              -
+  -   patents in process, and are protected by trade secret or copyright law.
+  -   Dissemination of this information or reproduction of this material     -
+  -   is strictly forbidden unless prior written permission is obtained      -
+  -   from Nikkishi LLC.                                                     -
+  ----------------------------------------------------------------------------}%
+<script type="text/javascript">
+	function twodateComp(cdate1, cdate2) {
+		//$('#toDate').val()
+		//alert($('#tenantId').val());
+		var date1 = $('#' + cdate1).val();
+		var date2 = $('#' + cdate2).val();
+
+		//alert(date1 + "----" + date2)
+		if (date1 == '' ^ date2 == '') {
+			if (date1 == '') {
+				alert("Please Enter From Date..!");
+				$('#' + cdate1).select();
+			} else {
+				alert("Please Enter To Date..!");
+				$('#' + cdate2).select();
+			}
+			return false;
+		}
+		var dd1 = date1.substring(3, 5);
+		var mm1 = date1.substring(0, 2);
+		var yy1 = date1.substring(6, date1.length);
+		tmpdate1 = new Date(yy1, mm1 - 1, dd1);
+
+		var dd2 = date2.substring(3, 5);
+		var mm2 = date2.substring(0, 2);
+		var yy2 = date2.substring(6, date2.length);
+		tmpdate2 = new Date(yy2, mm2 - 1, dd2);
+
+		if (date2 != '' & date1 != '')
+			if (tmpdate1 > tmpdate2) {
+				alert("From Date must be less then To Date(" + mm2 + "/" + dd2
+						+ "/" + yy2 + ")");
+				$('#' + cdate1).select();
+				return false;
+			} else if (tmpdate1 == tmpdate2) {
+				//alert("ok");
+				showSpinner();
+				return true;
+			} else {
+				//alert("ok");
+				showSpinner();
+				return true;
+			}
+	}
+	$(document).ready(function(){
+		$("#fromDate").val("${fromDate}")
+		$("#toDate").val("${toDate}")
+	});
+	</script>
+<g:set var="entityName" value="${message(code: 'reports.label', default: 'Report')}"/>
+    <title><g:message code="default.report.label" args="[entityName]"/></title>
+    <% if ( fullData != null ) { %>
+   <script type="text/javascript">
+
+        var chart;
+        $(document).ready(function(){
+			drawChart('bar');
+		});
+	
+		function drawChart(chartType) {
+			if(chartType=='pie'){
+				drawPieChart();
+				return;
+			}
+			chart = new Highcharts.Chart({
+				chart: {
+					renderTo: 'container',
+					defaultSeriesType: chartType
+				},
+				title: {
+					text: '${title}'
+				}, 
+				subtitle: {
+					text: ''
+				},
+				xAxis: {"categories":${dataLabel}
+				
+				},
+				yAxis: ${yAxisLabel},
+				legend: {
+					align: 'right',
+					x: -40,
+					verticalAlign: 'bottom',
+					y: 120,
+					floating: true,
+					backgroundColor: '#FFFFFF',
+					borderColor: '#CCC',
+					borderWidth: 1,
+					shadow: false
+				},
+				tooltip: {
+					formatter: function() {
+						return '' +
+								this.x +' '+this.series.name+ ': ' + this.y + ' ';
+					}
+				},
+				plotOptions: {
+					column: {
+						pointPadding: 0.2,
+						borderWidth: 0
+					}
+				},
+				series: ${data}
+			});
+	
+	
+		}
+		
+		function drawPieChart(){
+			chart = new Highcharts.Chart({
+				chart: {
+					renderTo: 'container',
+					plotBackgroundColor: null,
+					plotBorderWidth: null,
+					plotShadow: false
+				},
+				title: {
+					text: '${title}'
+				},
+				tooltip: {
+					formatter: function() {
+						return '<b>'+ this.point.name +'</b>, '+this.series.name+': '+ this.y;
+					}
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: true,
+							color: '#000000',
+							connectorColor: '#000000',
+							formatter: function() {
+								return '<b>'+ this.point.name +'</b>: '+ this.y;
+							}
+						}
+					}
+				},
+				series: [{
+					type: 'pie',
+					name: ${yAxisLabel}[0].title.text,
+					data: ${pieData as grails.converters.JSON}
+				}]
+			});
+		}
+
+    </script>
+	<%}%>
+	<script type="text/javascript">
+		function getXandYAxis(formDD){
+			if($(formDD).val() !=''){
+				jQuery.ajax({type:'POST', url:'/form-builder/report/getXandYAxis/'+$(formDD).val(),success:function(data,textStatus){setXandYAxis(data);},error:function(XMLHttpRequest,textStatus,errorThrown){alert("error.");}});
+			}
+		}
+		function setXandYAxis(data){
+			var $xAxis = $('#xAxis');
+			$('option',$xAxis).remove();
+			$xAxis.append('<option value="">Please Select</option>');
+			
+			var $yAxis = $('#yAxis');
+			$('option',$yAxis).remove();
+			
+			var $sort = $('#sort');
+			$('option',$sort).remove();
+			$sort.append('<option value="">Please Select</option>');
+			
+			for(var i=0; i<data.xAxis.length; i++){
+				var $opt = $('<option></option>');
+				$opt.val(data.xAxis[i].name)
+				$opt.text(data.xAxis[i].label)
+				$opt.attr('title',data.xAxis[i].label)
+				$xAxis.append($opt);
+				$sort.append($opt.clone());
+			}
+			for(var i=0; i<data.yAxis.length; i++){
+				var $opt = $('<option></option>');
+				$opt.val(data.yAxis[i].name)
+				$opt.text(data.yAxis[i].label)
+				$opt.attr('title',data.yAxis[i].label)
+				$yAxis.append($opt);
+				$sort.append($opt.clone());
+			}
+		}
+	</script>
+</head>
+
+<body>
+	
+	
+	<section class="main-section grid_7">
+    <div class="main-content">
+        <header>
+            <g:if test="${flash.message}">
+<%--                <div class="message"><g:message code="${flash.message}" args="${flash.args}"--%>
+<%--                                                default="${flash.defaultMessage}"/></div>--%>
+			<div class="message">${flash.message}</div>
+            </g:if>
+  		
+  			<div class="view-switcher">
+                <h2>Report on logs <a href="#">&darr;</a></h2>
+                <ul>
+        		  <sec:ifAnyGranted roles="ROLE_HR_MANAGER">
+        		  	<li><g:link controller="report" action="formReport"><g:message
+                            code="report.forms" default= 'Report on forms'/></g:link></li>
+        		     <li><g:link controller="report" action="sender"><g:message
+                            code="report.sender" default= 'Feeds by Sender'/></g:link></li>
+                   	 <li><g:link controller="report" action="logReport"><g:message
+                           code="report.config" default= 'Report on logs'/></g:link></li>
+                     
+                  </sec:ifAnyGranted>
+                   <sec:ifAnyGranted roles="ROLE_ADMIN">
+        		     <li><g:link controller="report" action="clientFormReport"><g:message
+                           code="report.config" default= 'Reports on forms by client '/></g:link></li>
+                  </sec:ifAnyGranted>
+                  <li><g:link controller="report" action="emailReport"><g:message
+                            code="report.forms" default= 'Email Analyzer'/></g:link></li>
+                </ul>
+            </div>
+        </header>
+        <!-- Main Section -->
+
+        <section class="container_6 clearfix">
+            
+            
+            
+	<div class="grid_6">
+	
+	<form method="post" >
+	<table class="datatable full">
+                        <tbody>
+                        <ul class="action-buttons clearfix fr">
+                           <tr class="prop">
+                                <td style="vertical-align:top;">
+                                  From Date
+                                </td>
+                                <td style="vertical-align:top;">
+                                	<div>
+                                		<input type="date" id="fromDate" name="fromDate" value="${fromDate}"/>
+                                	</div>
+                                </td>
+                                <td style="vertical-align:top;">
+                                    <sec:ifAnyGranted roles="${com.oneapp.cloud.core.Role.ROLE_SUPER_ADMIN }">
+                                    	Client <font color="red" >*</font>
+                                    </sec:ifAnyGranted>
+                                    &nbsp;
+                                </td>
+	                            <td>
+	                            	<sec:ifAnyGranted roles="${com.oneapp.cloud.core.Role.ROLE_SUPER_ADMIN }">
+	                                	<g:select style="width:200px" from="${com.oneapp.cloud.core.Client.list() }" name="tenantId" optionKey="id" optionValue="name" multiple="true" />
+	                                	<script>
+	                                	$('#tenantId').val(${tenantList as grails.converters.JSON})
+	                                	</script>
+	                                </sec:ifAnyGranted>
+	                                &nbsp;
+                                </td>
+                            </tr><tr>
+                                <td>
+                                  To Date
+                                </td>
+                                <td>
+                                	<div>
+                                    	<input type="date" id="toDate" name="toDate" value="${toDate}" />
+                                    	<script>
+	                                		$(document).ready(function(){
+		                                		$("#fromDate").val("${fromDate}")
+		                                		$("#toDate").val("${toDate}")
+		                                	});
+	                                	</script>
+                                    </div>
+                                </td>
+                                <td>Chart Type </td>
+                                <td>
+                                	${fullData?'<select name="chartType" onchange="drawChart(this.value)"><option value="bar">Bar Chart</option>'+(pieData?'<option value="pie">Pie Chart</option>':'')+'<option value="line">Line Chart</option></select>':'&nbsp;' }
+                                </td>
+                            </tr>
+                             <tr class="prop">
+                                <td valign="top" class="name">Last Run </td>
+                            <td> <g:formatDate date="${new Date()}" type="datetime" style="MEDIUM"/></td>
+                            <td></td><td></td>
+<%--                                <td>--%>
+<%--                                	Filter--%>
+<%--                                </td>--%>
+<%--                                <td>--%>
+<%--                                	<g:select name="filterErrorType" from="${["ALL","ERROR","INFO"] }" value="${params.filterErrorType }"/>--%>
+<%--                                </td>--%>
+                            </tr>
+<%--                            <tr>--%>
+<%--                            	<td>Sort/Order--%>
+<%--                            	</td>--%>
+<%--                            	<td>--%>
+<%--                            		<select name="sort" id="sort" style="width:115px">--%>
+<%--                            			<option value="">Please Select</option>--%>
+<%--                            			<g:each in="${xAndYAxis?.xAxis }" var="xAxis">--%>
+<%--                            				<option value="${xAxis.name}" ${xAxis.name==params.sort?'selected':'' } title="${xAxis.label }">${xAxis.label }</option>--%>
+<%--                            			</g:each>--%>
+<%--                            			<g:each in="${xAndYAxis?.yAxis }" var="yAxis">--%>
+<%--                            				<option value="${yAxis.name}" ${yAxis.name==params.sort?'selected':'' } title="${yAxis.label }">${yAxis.label }</option>--%>
+<%--                            			</g:each>--%>
+<%--                            		</select>--%>
+<%--                            		<select name="order" id="order" style="width:100px">--%>
+<%--                            			<option value="asc" ${'asc'==params.order?'selected':'' }>Ascending</option>--%>
+<%--                            			<option value="desc" ${'desc'==params.order?'selected':'' }>Descending</option>--%>
+<%--                            		</select>--%>
+<%--                            	</td>--%>
+<%--                            </tr>--%>
+                        	<tr class="prop">
+                                <td valign="top"  class="name">Run Again </td>
+                            	<td><g:actionSubmit class="button button-gray" action="logReport" controller="report" onclick="return twodateComp('fromDate','toDate');" name="Run Report" value="Run Report"/> </td>
+                            	<td></td><td></td>
+                            </tr>
+                        </ul>
+                  </tbody>
+</table>
+</form>
+</div>
+
+	<%
+		def summaryTotal=new ArrayList()
+		def totalEntries = 0
+		def totalAttachmentSize=0
+	
+	%>
+	<br/><br/><br/>
+	<div id="container" class="grid_6"></div>
+
+	<br/><br/><br/>
+	<div id="grid" class="grid_6">
+	<g:if test="${fullData }">
+		<table class="datatable selectable full">
+				<thead>
+				<tr>
+					<th>Client Name</th>
+					<th>Error Level</th>
+					<th>Description</th>
+					<th>Error In</th>
+					<th>Log Time</th>
+					
+				</tr>
+				</thead>
+	                    <tbody>
+	                    <g:each in="${clientNameList}" var="clientIdName">
+		                    <g:each in="${fullData }" var="d" status="i">
+		                    	<g:if test="${clientIdName[0]==d.tenantId }">
+			                    	<g:set var="counter" value="${0 }"/>
+			                        <tr class="${(counter++ % 2) == 0 ? 'odd' : 'even'}">
+			                            <td>${clientIdName[1] }</td>
+			                            <td>${fieldValue(bean:d,field:'errorLevel')}</td>
+			                            <td id="description${i }" onclick="expandCollapse(this);">${fieldValue(bean:d,field:'description')}</td>
+			                            <td id="errorType${i }" onclick="expandCollapse(this);">${fieldValue(bean:d,field:'errorType')}</td>
+			                            <td>${d.logTime}</td>
+			                        </tr>
+		                        </g:if>
+		                    </g:each>
+		                </g:each>
+                    </tbody>
+                </table>
+                <script>
+					function expandCollapse(ele){
+						if($(ele).css('white-space')=='nowrap'){
+							$(ele).css('white-space','normal')
+							var resultingText = ""
+							var text = $(ele).html();
+							var counter = 0;
+							for(var i=0;i<text.length;i++){
+								if(text[i]!=' ' && text[i]!='-'){
+									counter++;
+								}else{
+									counter = 0;
+								}
+								if(counter==23){
+									resultingText += '<span class="word-wrap"> </span>';
+									counter = 0;
+								}
+								resultingText += text[i];
+							}
+							$(ele).html(resultingText);
+						}else{
+							$('.word-wrap',$(ele)).remove();
+							$(ele).css('white-space','nowrap')
+						}
+					}
+					var browserName  = navigator.appName;
+					if( browserName== "Microsoft Internet Explorer"){
+						$(document).ready(function(){
+							$('td').trigger('click');
+							$('td').each(function(){
+								this.onclick = function(){}
+							});
+						});
+					}
+                </script>
+	
+<%--				<table>--%>
+<%--			 		<% if ( fromDate != null ) {%>--%>
+<%--			 		<tr style='background-color: #FFF8DC' > <td><b> Report Summary : Between  ${fromDate} and ${toDate} there are ${totalEntries} entries in this form. </b></td></tr>--%>
+<%--		   			<%}%>--%>
+<%--   				</table>--%>
+   			</g:if>
+   			
+   	 </div>
+
+            
+            
+        </section>
+    </div>
+
+</section>
+
+<!-- Main Section End -->
+
+</div>
+</section>
+	 
+	
+	
+</body>
+</html>

@@ -1,0 +1,161 @@
+
+
+package com.oneapp.cloud.core
+
+class UserProfileController {
+
+    def index = { redirect(action: "edit", params: params) }
+
+    // the delete, save and update actions only accept POST requests
+    static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
+
+   def springSecurityService
+   def getSessionUser() {
+    return springSecurityService.currentUser
+   }
+
+    def create = {
+        def userProfileInstance = new UserProfile()
+        def user = User.get(getSessionUser().id)
+        userProfileInstance.user = user
+        userProfileInstance.emailSubscribed=true
+        userProfileInstance.background="#F0E8D0" // default background color...change this if custom.css default color is changed.
+        userProfileInstance.header="#003869" // default header color...change this if custom.css default color is changed.
+        userProfileInstance.save()
+        userProfileInstance.properties = params
+        return [userProfileInstance: userProfileInstance]
+    }
+
+    def save = {
+        def userProfileInstance = new UserProfile(params)
+        // userProfileInstance.user.save()
+        if (!userProfileInstance.hasErrors() && userProfileInstance.save()) {
+            flash.message = "userProfile.created"
+            flash.args = [userProfileInstance.id]
+            flash.defaultMessage = "UserProfile ${userProfileInstance.id} created"
+            redirect(action: "edit", id: userProfileInstance.id)
+        }
+        else {
+            render(view: "create", model: [userProfileInstance: userProfileInstance])
+        }
+    }
+
+
+
+    def edit = {
+        def user = User.get(getSessionUser().id)
+        def userProfileInstance = UserProfile.findByUser(user)
+        if (!userProfileInstance) {
+            userProfileInstance = new UserProfile()
+            userProfileInstance.emailSubscribed=true
+            userProfileInstance.user = user
+            userProfileInstance.save()
+        }
+        return [userProfileInstance: userProfileInstance]
+
+    }
+    
+    def disConnectSocial = {
+    	def user = getSessionUser().username
+    	try{
+    		OauthDetails.executeUpdate("delete from OauthDetails where username='${user}'")
+    		RequestTokenOauthDetails.executeUpdate("delete from RequestTokenOauthDetails where username='${user}'")
+    		render "Disconnected"
+    	}catch(Exception e )
+    	{
+    		log.error e
+    	}
+    }
+
+    def update = {
+        def userProfileInstance = UserProfile.get(params.id)
+        if (userProfileInstance) {
+            if (params.version) {
+                def version = params.version.toLong()
+                if (userProfileInstance.version > version) {
+
+                    userProfileInstance.errors.rejectValue("version", "userProfile.optimistic.locking.failure", "Another user has updated this UserProfile while you were editing")
+                    render(view: "edit", model: [userProfileInstance: userProfileInstance])
+                    return
+                }
+            }
+            userProfileInstance.properties = params
+            if (!userProfileInstance.hasErrors() && userProfileInstance.save()) {
+				if(params.profilePicture &&params.profilePicture.size>0){
+					def contentType=[
+						'image/jpeg',
+						'image/gif',
+						'image/png',
+						'image/bmp'
+					]
+					if(contentType.contains(params?.profilePicture?.getContentType())){
+						userProfileInstance.removeAttachments()
+						attachUploadedFilesTo(userProfileInstance) 
+						flash.message = "userProfile.updated"
+		                flash.args = [userProfileInstance.user.username]
+		                flash.defaultMessage = "UserProfile ${userProfileInstance.user.username} updated"
+		                
+		                session.bgcolor=params.background // Set the background color
+                
+					}else{
+						flash.message = "profilePicture.not.created"
+						flash.defaultMessage = "<span style='color: red;'>Please only upload image<span>"
+					}
+					redirect(action: "edit", id: userProfileInstance.id)
+					return
+				}
+                flash.message = "userProfile.updated"
+                flash.args = [userProfileInstance.user.username]
+                flash.defaultMessage = "UserProfile ${userProfileInstance.user.username} updated"
+                
+                session.bgcolor=params.background // Set the background color
+                
+                redirect(action: "edit", id: userProfileInstance.id)
+            }
+            else {
+                render(view: "edit", model: [userProfileInstance: userProfileInstance])
+            }
+        }
+        else {
+            flash.message = "userProfile.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "UserProfile not found with id ${params.id}"
+            redirect(action: "edit", id: params.id)
+        }
+    }
+
+    def delete = {
+        def userProfileInstance = UserProfile.get(params.id)
+        if (userProfileInstance) {
+            try {
+                userProfileInstance.delete()
+                flash.message = "userProfile.deleted"
+                flash.args = [params.id]
+                flash.defaultMessage = "UserProfile ${params.id} deleted"
+                redirect(action: "create")
+            }
+            catch (org.springframework.dao.DataIntegrityViolationException e) {
+				log.error e
+                flash.message = "userProfile.not.deleted"
+                flash.args = [params.id]
+                flash.defaultMessage = "UserProfile ${params.id} could not be deleted"
+                redirect(action: "edit", id: params.id)
+            }
+        }
+        else {
+            flash.message = "userProfile.not.found"
+            flash.args = [params.id]
+            flash.defaultMessage = "UserProfile not found with id ${params.id}"
+            redirect(action: "edit")
+        }
+    }
+	
+	def getProfileImage = {
+		def user = User.read(params.id)
+		def userImage = user?.picture
+		response.setContentType("image/jpeg")
+		response.outputStream << userImage
+		response.outputStream.flush()
+		return
+	}
+}

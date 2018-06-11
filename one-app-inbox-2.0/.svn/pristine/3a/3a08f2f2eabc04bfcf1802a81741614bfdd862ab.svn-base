@@ -1,0 +1,183 @@
+  %{----------------------------------------------------------------------------
+  - [ NIKKISHI CONFIDENTIAL ]                                                -
+  -                                                                          -
+  -    Copyright (c) 2011.  Nikkishi LLC                                     -
+  -    All Rights Reserved.                                                  -
+  -                                                                          -
+  -   NOTICE:  All information contained herein is, and remains              -
+  -   the property of Nikkishi LLC and its suppliers,                        -
+  -   if any.  The intellectual and technical concepts contained             -
+  -   herein are proprietary to Nikkishi LLC and its                         -
+  -   suppliers and may be covered by U.S. and Foreign Patents,              -
+  -   patents in process, and are protected by trade secret or copyright law.
+  -   Dissemination of this information or reproduction of this material     -
+  -   is strictly forbidden unless prior written permission is obtained      -
+  -   from Nikkishi LLC.                                                     -
+  ----------------------------------------------------------------------------}%
+<!DOCTYPE html>
+<head>
+    <title><g:layoutTitle default="Welcome to One App Cloud"></g:layoutTitle></title>
+	<link rel="apple-touch-icon" href="${resource(dir: 'images', file: 'favicon.ico')}" />
+	<META HTTP-EQUIV="EXPIRES" CONTENT="Mon, 22 Jul 2013 11:12:01 GMT">
+	<icep:bridge contextPath="${request.getContextPath()}"/>
+    <link rel="shortcut icon" href="${resource(dir: 'images', file: 'favicon.ico')}" type="image/x-icon"/>
+   
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'grid_min.css')}"/>
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'style_min.css')}"/>
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'messages.css')}"/>
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'forms_min.css')}"/>
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'tables_min.css')}"/>
+    <link rel="stylesheet" href="${resource(dir: 'css', file: 'main_min.css')}"/>
+     <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'chat.css')}"/>
+	<link rel="stylesheet" media="screen" href="${resource(dir:'css',file:'button.css')}"  />
+	<link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'dropdownstyle.min.css')}"/>
+    <link rel="stylesheet" media="screen" href="${resource(dir: 'css', file: 'custom.css')}"/>
+   <link rel="stylesheet" media="screen" href="${resource(dir: 'plugins/jquery-ui-1.8.6/jquery-ui/themes/smoothness', file: 'jquery-ui-1.8.6.custom.min.css')}"/>
+
+    <script src="${resource(dir: 'js', file: 'jquery.tools.min.js')}"></script>
+    <script src="${resource(dir: 'js', file: 'highcharts.js')}"></script>
+    <script src="${resource(dir: 'js', file: 'exporting.js')}"></script>
+    <script type="text/javascript" src="${resource(dir: 'js', file: 'global-min.js')}"></script>
+    <script type="text/javascript" src="${request.getContextPath()+'/js/jquery.tools.configuration.js'}"></script>
+    <script type="text/javascript" src="${resource(dir: 'js', file: 'jquery.tables.js')}"></script>
+    <script type="text/javascript" src="${resource(dir: 'js', file: 'share.min.js')}"></script>
+    <script type="text/javascript" src="${resource(dir: 'js', file: 'chat.js')}"></script>
+    <script type="text/javascript" src="${resource(dir: 'js', file: 'dropdownscript-min.js')}"></script>
+    <script type="text/javascript" src="${request.getContextPath()+'/js/asec.js'}"></script>
+    <gui:resources components="autoComplete"/>
+
+    <script type="text/javascript">
+    	var feedFilterTag = ""
+    	var requestUrlForAjax = "${request.getContextPath()}/"
+        	
+    	$(document).ready(function(){
+    		showOverLayPopup();
+    		try{
+				setDateTypes()
+			}catch(e){}
+    		getAcitvityFeedView('')
+        });
+        //define your itemSelect handler function:
+        var itemSelectHandler2 = function(aArgs) {
+          //  alert(aArgs);
+            var oMyAcInstance = aArgs[0]; // your AutoComplete instance
+            var elListItem = aArgs[1]; // the <li> element selected in the suggestion
+            // container
+            var oData = aArgs[2]; // object literal of data for the result
+           // alert(oData);
+        };
+
+        //subscribe your handler to the event, assuming
+        //you have an AutoComplete instance myAC:
+        try{
+        myAC.itemSelectEvent.subscribe(itemSelectHandler2);
+        }catch(e){}
+        
+        
+    </script>
+    <g:javascript library="application"/>
+ 
+    <g:layoutHead/>
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-25353534-1']);
+  _gaq.push(['_setDomainName', '.oneappcloud.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+
+
+</script>
+<style type="text/css">
+	.createFormInstance{
+		position:relative;
+		width:4px;
+		height:6px;
+		top:4px;
+		left:5px;
+	}
+	.ui-autocomplete-loading{
+   		background: url("${request.getContextPath()}/images/ajax-loader.gif") no-repeat right;
+   	}
+   	.ui-slider .ui-slider-handle,.slider .ui-state-focus{
+		width:34px;
+		height:36px;
+		border:0px;
+		top:-11px;
+		margin-left:-17px;
+		background:transparent;
+		background-image: url(${request.getContextPath()}/plugins/form-builder-0.1/images/face-3.png) !important;
+	}
+</style>
+</head>
+
+
+<body>
+
+
+<div id="spinner" class="spinner" style="display:none;width:100%;height: 100%;position: fixed;z-index: 10000;background-color: #fff;opacity:0.5;">
+  <img src="${grailsApplication.config.grails.serverURL}/images/loading.gif" alt="${message(code: 'spinner.alt', default: 'Loading...')}" style="position: absolute;margin: auto;left:0;right: 0;top: 0;bottom: 0;z-index:10001;"/>
+</div>
+<style type="text/css">
+	<g:render template="/layouts/custom"/>
+</style>
+
+<div id="wrapper">
+    <g:render template="/layouts/header"/>
+    <section style="padding-top:43px;">
+   
+        <div class="container_8 clearfix">
+         <g:if test="${controller!='register' && actionName!='userContactDetail'}">
+            <g:render template="/layouts/sidebar"/>
+            </g:if>
+            <g:layoutBody/>
+        </div>
+
+        <div id="push"></div>
+    </section>
+    <g:render template="/layouts/footer"/>
+</div>
+<sec:ifLoggedIn>
+	 <script type="text/javascript">
+	 function getAcitvityFeedView(filterTag){
+     	feedFilterTag = filterTag
+ 		$.ajax({
+ 	        type : "POST",
+ 	        url : "${request.getContextPath()}/dashboard/activityFeedView/"+filterTag,
+ 	        success: function(data) {
+ 	        	$("#totalFeedCount").html(data.total);
+    	        $("#totalTaskCount").html(data.taskCount);
+    	        $("#recentTaskCount").html(data.recentTaskCount)
+ 	        },
+ 	        error : function() {
+ 	 	        
+ 	        }
+ 		});
+ 	}
+
+	function setCountAndFeed(){
+	 $.ajax({ 
+  	  		url: "${grailsApplication.config.grails.serverURL}/alert/alert",
+  	          type: "GET",
+  	          dataType: "json",
+  	          success: function(data) {
+	  	        	$("#totalFeedCount").html(data.total);
+	    	        $("#totalTaskCount").html(data.taskCount);
+	    	        $("#recentTaskCount").html(data.recentTaskCount)
+  	              
+  	          },error: function(){
+  				}
+  		  });
+	 }
+	 </script>
+</sec:ifLoggedIn>
+
+</body>
+
+</html>

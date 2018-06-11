@@ -1,0 +1,32 @@
+<plugin name='grails-ui' version='1.2' grailsVersion='1.2 &gt; *'>
+  <author>Matthew Taylor</author>
+  <authorEmail>rhyolight@gmail.com</authorEmail>
+  <title>Grails UI</title>
+  <description>Provides a standard UI tag library for ajaxy widgets using YUI.</description>
+  <documentation>http://grails.org/plugins/grails-ui</documentation>
+  <resources>
+    <resource>BootStrap</resource>
+    <resource>BuildConfig</resource>
+    <resource>DataSource</resource>
+    <resource>GrailsUIConfig</resource>
+    <resource>GrailsUiResources</resource>
+    <resource>UrlMappings</resource>
+    <resource>org.grails.grailsui.ChartTagLibService</resource>
+    <resource>org.grails.grailsui.DatePickerService</resource>
+    <resource>org.grails.grailsui.DisplayTagLibService</resource>
+    <resource>org.grails.grailsui.GrailsUITagLibService</resource>
+    <resource>org.grails.grailsui.MenuTagLibService</resource>
+    <resource>org.grails.grailsui.ResourcesTagLibService</resource>
+    <resource>org.grails.grailsui.ChartTagLib</resource>
+    <resource>org.grails.grailsui.DataTableTagLib</resource>
+    <resource>org.grails.grailsui.DialogTagLib</resource>
+    <resource>org.grails.grailsui.DisplayTagLib</resource>
+    <resource>org.grails.grailsui.DragAndDropTagLib</resource>
+    <resource>org.grails.grailsui.InputTagLib</resource>
+    <resource>org.grails.grailsui.MenuTagLib</resource>
+    <resource>org.grails.grailsui.ResourcesTagLib</resource>
+    <resource>org.grails.grailsui.TabTagLib</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

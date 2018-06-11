@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+	<resource:carousel />
+	<resource:lightBox labelImage="Screen" labelOf="of"/>
+    <title>Form Builder Documentation</title><!-- Framework CSS -->
+    <link rel="stylesheet" media="screen" href="${resource(dir:'css',file:'button.css')}"  />
+    <style type="text/css" media="screen">
+/*<![CDATA[*/
+			body {
+			    background: none repeat scroll 0 0 #FFFFFF;
+			    color: #222222;
+			    font-family: "Helvetica Neue",Arial,Helvetica,sans-serif;
+			    font-size: 80%;
+			    padding-top: 0px;
+			}
+    /*]]>*/
+    </style>
+    <link rel="stylesheet" media="screen" href="../css/messages.css" type="text/css" />
+     
+</script>
+    <style type="text/css">
+/*<![CDATA[*/
+    body {
+    font: 12px/120% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', 'Helvetica', Arial, Verdana, sans-serif;
+    }
+    .html_code {
+    background-color:#C
+	EDCEC;
+    border:1px solid #000000;
+    color:#000000;
+    font:12px Verdana,Arial,Helvetica,sans-serif;
+    padding:4px;
+    text-align:left;
+    padding-left: 20px;
+    }
+    #overlay {
+    display: none;
+    }
+    /*]]>*/
+    </style>
+</head>
+
+<body>
+		<div  style=" margin: auto auto 10px;text-align: right;"><attachments:downloadLink class="button1 small " style="background: red;text-decoration: none;" attachmentId="${params.showImg}" feed="${params.feed}"> Download </attachments:downloadLink> </div>
+        <div id="mainImgDiv" class="message info" style=" margin: auto;max-width:500px; ">
+        <attachments:imagePopUp attachmentId="${params.showImg }"/>
+        </div>
+        <script type="text/javascript">
+	
+	function checkImgSize(obj){
+		if(obj.width<500){
+			document.getElementById('mainImgDiv').style.width = obj.width	+"px";
+		}
+		obj.oncontextmenu = function(){
+			return false;
+		}
+	}
+	
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+package org.grails.formbuilder
+
+import java.io.Serializable;
+
+import com.oneapp.cloud.core.*;
+
+/**
+ *
+ * @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+class MailChimpDetails implements Serializable{
+	
+	String apikey
+	String listId
+	String fieldMappings
+	Boolean optinemail
+	String sendChoice
+	static constraints = {
+		apikey nullable:false, blank: false
+		listId nullable:false, blank: false
+		fieldMappings nullable:false, blank: false,maxSize:2000
+		optinemail nullable:false
+		sendChoice nullable:false
+	}
+}

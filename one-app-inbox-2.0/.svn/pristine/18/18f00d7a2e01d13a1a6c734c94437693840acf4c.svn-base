@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+	<resource:carousel />
+	<resource:lightBox labelImage="Screen" labelOf="of"/>
+    <title>Terms of Payment</title><!-- Framework CSS -->
+    <link rel="stylesheet" href="assets/blueprint-css/print.css" type="text/css" media="print" /><!--[if lt IE 8]><link rel="stylesheet" href="assets/blueprint-css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+    <link rel="stylesheet" href="assets/blueprint-css/plugins/fancy-type/screen.css" type="text/css" media="screen, projection" />
+    <style type="text/css" media="screen">
+/*<![CDATA[*/
+		body {
+			    background: none repeat scroll 0 0 #FFFFFF;
+			    color: #222222;
+			    font-family: "Helvetica Neue",Arial,Helvetica,sans-serif;
+			    font-size: 80%;
+			}
+    /*]]>*/
+    </style>
+    <link rel="stylesheet" media="screen" href="../css/messages.css" type="text/css" />
+    <link rel="stylesheet" media="screen" href="../css/forms.css" type="text/css" />
+    <link rel="stylesheet" media="screen" href="../css/tables.css" type="text/css" />
+    <script type="text/javascript" src="../js/jquery.tools.min.js">
+</script>
+    <script type="text/javascript" src="../js/global.js">
+</script>
+    <style type="text/css">
+/*<![CDATA[*/
+    body {
+    font: 12px/120% 'Lucida Grande', 'Lucida Sans Unicode', 'Helvetica Neue', 'Helvetica', Arial, Verdana, sans-serif;
+    }
+    .html_code {
+    background-color:#CEDCEC;
+    border:1px solid #000000;
+    color:#000000;
+    font:12px Verdana,Arial,Helvetica,sans-serif;
+    padding:4px;
+    text-align:left;
+
+    padding-left: 20px;
+    }
+    #overlay {
+    display: none;
+    }
+    /*]]>*/
+    </style>
+</head>
+
+<body>
+    <div class="container">
+    	<div class="message info">
+<p align="center"><b>Terms of Payment</b></p>
+		 </div>
+			<p>A valid paypal account is required to pay for the application plans. Free accounts which provide a limited access to the Service are not required to provide a paypal account details. The One App Cloud Site is billed in advance on a monthly basis in accordance with our pricing plan(<a href="http://www.oneappcloud.com/pricing/" target="_blank">http://www.oneappcloud.com/pricing/</a>) and all payments are non-refundable. There will be no refunds or credits for partial months of Service, upgrade/downgrade refunds, or refunds for months unused with an open account. In order to treat everyone equally, no exceptions will be made.</p>
+			<p>You will be billed for your first month immediately upon signing up for a paying account. After signing up for a paying account and you don’t cancel that account within 30 days, you will be billed monthly starting on the 30th day after your account was initially created. An upgrade from the free account to any paying account will end your free trial. You will be billed for your first month immediately upon upgrading. For any upgrade or downgrade in plan level, your paypal account that you provided will automatically be charged monthly the new rate.</p>
+			<p>User can only downgrade the account if he qualifies the range for users, data storage and number of forms based on the pricing plans.</p>
+			<p>All fees are exclusive of all taxes, levies, or duties imposed by taxing authorities, and you shall be responsible for payment of all such taxes, levies, or duties, excluding only United States (federal or state) taxes. You agree to pay for any such taxes that might be applicable to your use of the Service and payments made by you herein.</p>
+</body>
+</html>

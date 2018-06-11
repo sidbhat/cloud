@@ -1,0 +1,21 @@
+
+h1. setConstraintOwningClass
+
+h2. Purpose
+
+
+
+h2. Examples
+
+{code:java}
+foo.setConstraintOwningClass(object)
+{code}
+
+h2. Description
+
+
+
+Arguments:
+
+[* @object@
+]

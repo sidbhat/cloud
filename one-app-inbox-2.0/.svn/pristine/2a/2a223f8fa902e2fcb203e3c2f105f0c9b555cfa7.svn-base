@@ -1,0 +1,389 @@
+package com.oneapp.cloud.core
+
+import grails.plugin.multitenant.core.util.TenantUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang.StringUtils;
+import org.openid4java.OpenIDException;
+import org.openid4java.consumer.InMemoryConsumerAssociationStore;
+import org.openid4java.discovery.DiscoveryInformation;
+import org.openid4java.message.AuthRequest;
+import org.openid4java.message.ParameterList;
+
+import com.google.code.samples.apps.marketplace.UserInfo;
+import com.google.code.samples.apps.marketplace.openid.ConsumerFactory;
+import com.google.step2.AuthRequestHelper;
+import com.google.step2.AuthResponseHelper;
+import com.google.step2.ConsumerHelper;
+import com.google.step2.Step2;
+import com.google.step2.discovery.IdpIdentifier;
+import com.google.step2.openid.ui.UiMessageRequest;
+import com.oneapp.cloud.core.Client;
+import com.oneapp.cloud.core.Role;
+import com.oneapp.cloud.core.User;
+import com.oneapp.cloud.core.UserRole;
+import com.oneappcloud.exceptions.UserLimitException;
+
+
+class OpenidController {
+	
+	def userDetailsService
+	def clientDataLoadService
+	def springSecurityService
+	def sessionRegistry
+	def clientService
+	
+	protected String realm = grailsApplication.config.realm
+    protected String returnToPath = grailsApplication.config.return_to_path
+    protected String homePath = grailsApplication.config.home_path
+	
+	ConsumerFactory factory = new ConsumerFactory(new InMemoryConsumerAssociationStore());
+	ConsumerHelper consumerHelper = factory.getConsumerHelper();
+
+    def openid = {
+ 		String domain = request.getParameter("hd");
+		if (domain != null) {
+			// User attempting to login with provided domain, build and OpenID request and redirect
+			try {
+				AuthRequest authRequest = startAuthentication(domain.toLowerCase(), request);
+				String url = authRequest.getDestinationUrl(true);
+				response.sendRedirect(url);
+			} catch (OpenIDException e) {
+				log.error e
+				flash.message = "Error initializing openId request"
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+			} catch(Exception ex){
+			log.error ex
+				flash.message = "Error initializing openId request"
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+			}
+		} else {
+			// This is a response from the provider, go ahead and validate
+			try {
+	            UserInfo user = completeAuthentication(request);
+	            loadUser(user)
+				if(request['isMobile']){
+					redirect(uri:grailsApplication.config.home_path_m)
+				}else{
+					redirect(uri:"/")
+				}
+				
+	        } catch(UserLimitException e){
+				flash.message = message(code:"user.limit.reached",'default':"You have reached the maximum user creation Limit. Please contact your Administrator")
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+			} catch (OpenIDException e) {
+			log.error e
+			println e.printStackTrace(); 
+				flash.message = "Error initializing openId request"
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+	        } catch (NullPointerException e) {
+				log.error e
+				flash.message = message(code:"enter.right.domain",'default':"Please sign out from your existing google account and try again")
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+			} catch(Exception ex){
+			log.error ex
+				flash.message = "Error initializing openId request"
+				flash.defaultMessage = flash.message
+				redirect(controller:'register',action:'googleAppLogin')
+			}
+		}
+	}
+	
+	def loadUser = {UserInfo user ->
+	//	println "loading user here."
+		def domainName = user.email.substring(user.email.indexOf('@')+1);
+//		println "Domain Name: ------>>>>>"+domainName
+		User userToLoad = User.findByUsername(user.email)
+		def client
+		boolean changeRole = false
+		if(!user.claimedId){
+			throw new Exception("Claimed id not provided by the openid provider")
+		}
+		if(userToLoad){
+			client = Client.get(userToLoad.userTenantId);
+			if(!userToLoad.claimedId){
+				userToLoad.claimedId = user.claimedId
+			}else if(userToLoad.claimedId != user.claimedId){
+				throw new Exception("ClaimedId matching error...")
+			}
+		}
+		if(!client && domainName == "gmail.com"){
+			client = Client.read(1);
+		}
+		if(!client)
+			client = Client.findByDomain(domainName);
+		if(!client){
+			client = new Client(name:domainName,domain:domainName,description:domainName,licenseCollaboration:true,licenseFormBuilder:true).save(flush:true,validate: true)
+			clientDataLoadService.loadInitialData(client.id,null)
+		}
+		if(client){
+			def allUsersOfThisClient = User.createCriteria().list(){
+				eq 'userTenantId',client.id.toInteger()
+			}
+			def totalUsers = 0
+			if(allUsersOfThisClient)
+				totalUsers = allUsersOfThisClient.size()
+			boolean makeClientAdmin = false
+			if(totalUsers == 1 && userToLoad && allUsersOfThisClient.find{it.id == userToLoad.id}){
+				makeClientAdmin = true
+				changeRole = true
+			}
+			if(!userToLoad){
+				log.error "User request in OpenId by: "+user.email+", First Name: "+user.firstName+", LastName: "+user.lastName
+				if(domainName != "gmail.com"){
+					def totalExistingUsers = clientService.getTotalUsers(client.id.toInteger())
+					if(totalExistingUsers >= client.maxUsers){
+						throw new UserLimitException()
+					}
+				}
+				userToLoad = new User(username:user.email,password:'password',enabled:true, accountExpired:true, accountLocked:true, passwordExpired:true,claimedId:user.claimedId,firstName:user.firstName,lastName:user.lastName)
+				userToLoad.userTenantId = client.id.toInteger()
+				userToLoad = userToLoad.save(flush:true,validate:false)
+				if(totalUsers == 0){
+					makeClientAdmin = true
+				}
+				changeRole = true
+			}
+			if(userToLoad){
+				if(!userToLoad.lastLogIn){
+					TenantUtils.doWithTenant(userToLoad.userTenantId) {
+						new RegisterController().welcomeEmail(userToLoad)
+					}
+				}
+				//userToLoad.userTenantId = client.id
+				if(changeRole){
+					if(makeClientAdmin && !userToLoad.authorities*.authority.contains(Role.ROLE_ADMIN)){
+						flash.message = "user.created.clientAdmin"
+						flash.args = []
+						flash.defaultMessage = "Your account is created and you are a client admin"
+						def roleOpenid = Role.findByAuthority(Role.ROLE_ADMIN)
+						new UserRole(user:userToLoad,role:roleOpenid).save(flush:true,validate:false)
+						try{
+							TenantUtils.doWithTenant(userToLoad.userTenantId) {
+								def allUsers = User.findAllByUserTenantId(userToLoad.userTenantId)
+								def defaultCreatedRuleSets = RuleSet.executeQuery("from RuleSet where createdBy = null and tenantId = "+userToLoad.userTenantId)
+								defaultCreatedRuleSets.each{
+									it.createdBy = userToLoad
+									it.save(flush:true)
+								}
+							}
+						}catch(Exception e){
+							log.error e
+						}
+					}
+					if(!makeClientAdmin){
+						def roleOpenid
+						if(domainName == 'gmail.com'){
+							roleOpenid = Role.findByAuthority(Role.ROLE_TRIAL_USER)
+							clientDataLoadService.loadInitialDataForTrialUser(userToLoad)
+						} else{
+							roleOpenid = Role.findByAuthority(Role.ROLE_USER)
+						}
+						new UserRole(user:userToLoad,role:roleOpenid).save(flush:true,validate:false)
+					}
+				}
+//				def loadGrailsUser = userDetailsService.loadUserByUsername(userToLoad.username)
+//				SCH.context.authentication = new UsernamePasswordAuthenticationToken(
+//					loadGrailsUser, loadGrailsUser.password, loadGrailsUser.authorities)
+				springSecurityService.reauthenticate userToLoad.username
+				sessionRegistry.registerNewSession(session.id, userToLoad)
+			}
+		}
+	}
+	
+	/**
+     * Builds an auth request for a given OpenID provider.
+     *
+     * @param op OpenID Provider URL.  In the context of Google Apps, this can be a naked domain
+     *           name such as "saasycompany.com".  The length of the domain can exceed 100 chars.
+     * @param request Current servlet request
+     * @return Auth request
+     * @throws org.openid4java.OpenIDException if unable to discover the OpenID endpoint
+     */
+    AuthRequest startAuthentication(String op, HttpServletRequest request)
+            throws OpenIDException {
+        IdpIdentifier openId = new IdpIdentifier(op);
+
+        String realm = realm(request);
+        String returnToUrl = returnToPath;
+
+        AuthRequestHelper helper = consumerHelper.getAuthRequestHelper(openId, returnToUrl);
+        addAttributes(helper);
+
+        HttpSession session = request.getSession();
+        AuthRequest authReq = helper.generateRequest();
+        authReq.setRealm(realm);
+
+        UiMessageRequest uiExtension = new UiMessageRequest();
+        uiExtension.setIconRequest(true);
+        authReq.addExtension(uiExtension);
+
+        session.setAttribute("discovered", helper.getDiscoveryInformation()); 
+        return authReq;
+    }
+
+    /**
+     * Validates the response to an auth request, returning an authenticated user object if
+     * successful.
+     *
+     * @param request Current servlet request
+     * @return User
+     * @throws org.openid4java.OpenIDException if unable to verify response
+     */
+
+    UserInfo completeAuthentication(HttpServletRequest request)
+            throws OpenIDException {
+        HttpSession session = request.getSession();
+        ParameterList openidResp = Step2.getParameterList(request);
+		 openidResp.getParameter("openid.identity").getValue()
+//		println openidResp
+        String receivingUrl = currentUrl(request);
+        DiscoveryInformation discovered =
+                (DiscoveryInformation) session.getAttribute("discovered");
+			return	onSuccess1(openidResp);
+				/*def consumerManager = new ConsumerManager()
+				
+				  // don't use the association handle passed in
+				  consumerManager.setMaxAssocAttempts(0)
+				  def discoveries = consumerManager.discover() 
+				  def discovered1 = consumerManager.associate(discoveries)
+				  //def openidResp1 = new ParameterList(queryStringParam)
+				  def verification = consumerManager.verify(receivingUrl, openidResp, discovered1)
+				  boolean secure = checkResponse(discovered1, verification);
+				  
+					  
+        AuthResponseHelper authResponse = new AuthResponseHelper(verification, secure);
+                //consumerHelper.verify(receivingUrl, openidResp, discovered);
+        if (authResponse.getAuthResultType() == AuthResponseHelper.ResultType.AUTH_SUCCESS) {
+            return onSuccess(authResponse, request);
+        }
+        return onFail(authResponse, request);*/
+    }
+			
+			/*private boolean checkResponse(SecureDiscoveryInformation d2,
+				VerificationResult verification) {
+		  
+			  if (d2 == null) {
+				return false;
+			  }
+		  
+			  UrlIdentifier claimedIdWithoutFragment;
+			  try {
+				claimedIdWithoutFragment = new UrlIdentifier(
+					verification.getVerifiedId().getIdentifier(), true);
+			  } catch (DiscoveryException e) {
+				return false;
+			  }
+		  
+			  if (d2.getClaimedIdentifier() == null) {
+				return false;
+			  }
+		  
+			  if (!d2.getClaimedIdentifier().getIdentifier().equals(
+				  claimedIdWithoutFragment.getIdentifier())) {
+				return false;
+			  }
+		  
+			  return d2.isSecure();
+			}*/
+
+    /**
+     * Adds the requested AX attributes to the request
+     *
+     * @param helper Request builder
+     */
+    void addAttributes(AuthRequestHelper helper) {
+        helper.requestAxAttribute(Step2.AxSchema.EMAIL, true)
+            .requestAxAttribute(Step2.AxSchema.FIRST_NAME, true)
+            .requestAxAttribute(Step2.AxSchema.LAST_NAME, true);
+    }
+
+    /**
+     * Reconstructs the current URL of the request, as sent by the user
+     *
+     * @param request Current servlet request
+     * @return URL as sent by user
+     */
+    String currentUrl(HttpServletRequest request) {
+        return Step2.getUrlWithQueryString(request);
+    }
+
+    /**
+     * Gets the realm to advertise to the IDP.  If not specified in the servlet configuration.
+     * it dynamically constructs the realm based on the current request.
+     *
+     * @param request Current servlet request
+     * @return Realm
+     */
+    String realm(HttpServletRequest request) {
+        if (StringUtils.isNotBlank(realm)) {
+            return realm;
+        } else {
+            return baseUrl(request);
+        }
+    }
+
+    /**
+     * Dynamically constructs the base URL for the application based on the current request
+     *
+     * @param request Current servlet request
+     * @return Base URL (path to servlet context)
+     */
+    String baseUrl(HttpServletRequest request) {
+        StringBuffer url = new StringBuffer(request.getScheme())
+                .append("://").append(request.getServerName());
+
+        if ((request.getScheme().equalsIgnoreCase("http")
+                && request.getServerPort() != 80)
+                || (request.getScheme().equalsIgnoreCase("https")
+                && request.getServerPort() != 443)) {
+            url.append(":").append(request.getServerPort());
+        }
+
+        return url.toString();
+    }
+
+    /**
+     * Map the OpenID response into a user for our app.
+     *
+     * @param helper Auth response
+     * @param request Current servlet request
+     * @return User representation
+     */
+    UserInfo onSuccess(AuthResponseHelper helper, HttpServletRequest request) {
+        //println helper
+        return new UserInfo(helper.getClaimedId().toString(),
+                helper.getAxFetchAttributeValue(Step2.AxSchema.EMAIL),
+                helper.getAxFetchAttributeValue(Step2.AxSchema.FIRST_NAME),
+                helper.getAxFetchAttributeValue(Step2.AxSchema.LAST_NAME));
+    }
+	UserInfo onSuccess1( ParameterList openidResp) {
+		try{
+		return new UserInfo(openidResp.getParameter("openid.claimed_id").getValue(),
+				openidResp.getParameter("openid.ext1.value.email").getValue(),
+				openidResp.getParameter("openid.ext1.value.firstName").getValue(),
+				openidResp.getParameter("openid.ext1.value.lastName").getValue());
+		}catch (Exception e) {
+			return null;
+		}
+	}
+
+    /**
+     * Handles the case where authentication failed or was canceled.  Just a no-op
+     * here.
+     *
+     * @param helper Auth response
+     * @param request Current servlet request
+     * @return User representation
+     */
+    UserInfo onFail(AuthResponseHelper helper, HttpServletRequest request) {
+        return null;
+    }
+}

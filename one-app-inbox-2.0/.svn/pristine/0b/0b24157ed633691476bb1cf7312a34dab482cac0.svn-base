@@ -1,0 +1,50 @@
+package com.oneapp.cloud.core
+
+
+import com.oneapp.cloud.core.AsynchronousEmailStorage
+import grails.plugin.multitenant.core.util.TenantUtils
+
+class SendAsyncEmailService {
+
+  static transactional = false
+  def mailService
+  /* This Method will send Async Mail
+ * */
+
+  def sendEmail() {
+	  
+	  def clients = Client.list()
+	  clients.each{
+	    TenantUtils.doWithTenant(it.id.toInteger()) {
+	      def asyncEmailStorageList = AsynchronousEmailStorage.findAllByEmailSentStatusOrEmailSentStatus(AsynchronousEmailStorage.NOT_ATTEMPT, AsynchronousEmailStorage.FAILED)
+	      AsynchronousEmailStorage.withTransaction {
+	        asyncEmailStorageList.each {asyncEmailStorage ->
+	          try {
+	            mailService.sendMail {
+	              to asyncEmailStorage.emailTO
+	              from asyncEmailStorage.emailFrom
+	              subject asyncEmailStorage.emailSubject
+				  if(asyncEmailStorage.isHtml)
+				  	html asyncEmailStorage.emailData
+				  else
+	              	body asyncEmailStorage.emailData?.encodeAsHTML()
+	            }
+	
+	            asyncEmailStorage.emailSentStatus = AsynchronousEmailStorage.SENT_SUCCESSFULLY
+	            asyncEmailStorage.delete(flush: true)
+	
+	
+	          } catch (Exception e) {
+			  	log.error e
+	            asyncEmailStorage.emailSentStatus = AsynchronousEmailStorage.FAILED
+	            asyncEmailStorage.save(flush: true)
+	
+	
+	          }
+	
+	        }
+	      }
+	    }
+	  }
+  }
+}

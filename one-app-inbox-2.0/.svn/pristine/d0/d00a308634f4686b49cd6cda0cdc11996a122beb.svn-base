@@ -1,0 +1,5 @@
+DefaultPackage
+grails-app.taglib.com.mfelix.grails.plugins.langSelector
+grails-app.utils.com.mfelix.grails.plugins.langSelector
+scripts
+test.unit.com.mfelix.grails.plugins.langSelector

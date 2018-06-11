@@ -1,0 +1,21 @@
+
+h1. attachUploadedFilesTo
+
+h2. Purpose
+
+
+
+h2. Examples
+
+{code:java}
+foo.attachUploadedFilesTo(object)
+{code}
+
+h2. Description
+
+
+
+Arguments:
+
+[* @object@
+]

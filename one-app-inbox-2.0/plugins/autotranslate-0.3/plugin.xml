@@ -1,0 +1,17 @@
+<plugin name='autotranslate' version='0.3' grailsVersion='1.0 &gt; *'>
+  <author>Bradley Beddoes</author>
+  <authorEmail>bradleybeddoes@gmail.com</authorEmail>
+  <title>Automatically Translate base english language files</title>
+  <description>\
+Takes a base set of (english) i18n properties files and for the configured languages utilizes Google Translate to automatically provide a decent starting point for other languages.
+</description>
+  <documentation>http://bradleybeddoes.com/2010/11/grails-auto-translate-plugin/</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

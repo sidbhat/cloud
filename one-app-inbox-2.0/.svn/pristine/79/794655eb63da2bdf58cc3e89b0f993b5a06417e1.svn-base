@@ -1,0 +1,170 @@
+.userImage {
+	width:50px;
+	float:left;
+	height:50px;
+	background: #ddd;
+	overflow:hidden;
+}
+.feedContent{
+	width:100%;
+	white-space:normal;
+	margin-top:0px;
+	color:#2F3E46;
+	font-size:13px;
+}
+.commentImg{
+	height:38px;
+	width:32px;
+	overflow:hidden;
+}
+div.ActivityCommentP {
+	width:100%;
+	float:left;
+	padding:7px 5px;
+	background:#ededf4;
+	border-bottom:1px solid #ddd;
+	margin-left:0px;
+	position: relative;
+	top: 0px;
+	margin-top:-3px;
+}
+div.ActivityCommentP img {
+	width:32px;
+	float:left;
+}
+div.ActivityCommentP span img {
+	width:16px;
+	float:left;
+	margin-top:-2px;
+	margin-bottom:2px;
+}
+div.ActivityCommentP div {
+	width:200px;
+	padding-left:33px;
+	font-size:11px;
+	color:#676767;
+	margin-top:10px;
+}
+div.ActivityCommentP b {
+	color:#0066FF;
+}
+div.ActivityCommentP p {
+	width:75%;
+	float:right;
+	padding-left:8px;
+	font-size:11px;
+	color:#000;
+	margin-top:0px;
+}
+div.ActivityCommentP p a {
+	font-weight:normal;
+	margin-right:3px;
+}
+div.ActivityCommentP p span {
+	width:auto;
+	float:left;
+	padding:3px 12px 0px 0px;
+	font-size:10px;
+	color:#676767;
+}
+div.ActivityCommentP textarea {
+	width:100%;
+	float:left;
+	font-size:11px;
+	color:#676767;
+}
+.button-green {
+   background: #007ead;
+    background: -webkit-gradient(linear, left top, left bottom, from(#0095cc), to(#00678e));
+    background: -moz-linear-gradient(top,  #0095cc,  #00678e);
+    -pie-background: linear-gradient(top,  #0095cc,  #00678e);
+    border: 1px solid #234;
+    color: #FFFFFF;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+     -moz-box-sizing: border-box !important;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3) inset;
+    cursor: pointer;
+    display: inline-block;
+    font-weight:normal;
+    font-size:11px;
+    text-decoration:none;
+    padding:2px 4px 2px 4px;
+    
+}
+.paginateButtons a {
+   background: #f1f1f1;
+    background: -webkit-gradient(linear, left top, left bottom, from(#e9e9e9), to(#d1d1d1));
+    background: -moz-linear-gradient(top,  #e9e9e9,  #d1d1d1);
+    -pie-background: linear-gradient(top,  #e9e9e9,  #d1d1d1);
+    border: 1px solid #bbb;
+    color: #555;
+    text-shadow: 0 1px 0 #fff;
+     -moz-box-sizing: border-box !important;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3) inset;
+    cursor: pointer;
+    display: inline-block;
+    font-weight:normal;
+    font-size:11px;
+    text-decoration:none;
+    padding:2px 4px 2px 4px;
+    margin-left:5px;
+    
+}
+
+.paginateButtons span {
+    padding: 2px 3px;
+}
+.postIcon{
+	 background-position: 5px 50%;
+    background-repeat: no-repeat;
+    padding-left: 25px;
+}
+.icon-note {
+    background-image: url(../images/icons/note.png) !important;
+}
+pre {
+	white-space: pre-wrap;
+	font-weight:normal;
+	margin:0px;
+}
+
+.thumbUp {
+    background-image: url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -6px;
+}
+.thumbUp:hover {
+    background-image: url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -40px;
+}
+.thumbUpSel {
+    background-image: url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -40px;
+}
+.thumbDown {
+    background-image:url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -72px;
+}
+.thumbDown:hover {
+    background-image:url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -106px;
+}
+.thumbDownSel {
+    background-image:url(../images/icons/thumbs_icon.png);
+     background-repeat: no-repeat;
+     background-position: 0px -106px;
+}
+.thumbStyle{
+	cursor:pointer;
+	display:block;
+	float:left;
+	height:20px;
+	width:26px;
+	
+}

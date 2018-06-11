@@ -1,0 +1,14 @@
+<plugin name='uni-form' version='1.5' grailsVersion='1.1.1 &gt; *'>
+  <author>Lim Chee Kin</author>
+  <authorEmail>limcheekin@vobject.com</authorEmail>
+  <title>Grails Uni-Form Plugin - Making Web Forms Simple as 1, 2, 3.</title>
+  <description>Simply supplies Uni-Form (http://sprawsm.com/uni-form/) resources. 
+Use this plugin to avoid resource duplication and conflicts.
+</description>
+  <documentation>http://grails.org/plugin/uni-form</documentation>
+  <resources>
+    <resource>org.grails.uniform.UniFormTagLib</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

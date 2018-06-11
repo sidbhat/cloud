@@ -1,0 +1,44 @@
+%{----------------------------------------------------------------------------
+  - [ NIKKISHI CONFIDENTIAL ]                                                -
+  -                                                                          -
+  -    Copyright (c) 2011.  Nikkishi LLC                                     -
+  -    All Rights Reserved.                                                  -
+  -                                                                          -
+  -   NOTICE:  All information contained herein is, and remains              -
+  -   the property of Nikkishi LLC and its suppliers,                        -
+  -   if any.  The intellectual and technical concepts contained             -
+  -   herein are proprietary to Nikkishi LLC and its                         -
+  -   suppliers and may be covered by U.S. and Foreign Patents,              -
+  -   patents in process, and are protected by trade secret or copyright law.
+  -   Dissemination of this information or reproduction of this material     -
+  -   is strictly forbidden unless prior written permission is obtained      -
+  -   from Nikkishi LLC.                                                     -
+  ----------------------------------------------------------------------------}%
+
+<header>
+    <div class="container_8 clearfix">
+       <h1 class='grid_2'><a href='${grailsApplication.config.grails.serverURL}'><g:message code="menu.oneapp" default="Form Builder"/></a></h1>
+    <nav class="grid_5">
+    		<ul class="clearfix">
+  						
+			<sec:ifLoggedIn>
+            <li class="fr">
+                <a href="${grailsApplication.config.grails.serverURL}/"><g:message code="menu.welcome" default="Welcome"/>&nbsp;<sec:loggedInUserInfo field="username"/><span class="arrow-down"></span></a>
+            
+            			<ul>
+            			<li> <a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
+            			<li> <a class="home" href="${grailsApplication.config.grails.oneappURL}"><g:message code="default.oneapp.label" default="Form Builder"/></a></li>
+          				<li> <g:link class="logout" controller="logout"><g:message code="default.logout.label" args="[entityName]" /></g:link></li>
+  		 	
+          				</ul>
+             
+
+           	</li>    
+            
+           
+        </sec:ifLoggedIn>
+    	</ul>
+    	</nav>
+    </div>
+    <!-- Testing commit, Main Pal -->
+</header>

@@ -1,0 +1,535 @@
+package org.grails.formbuilder
+
+import org.codehaus.groovy.grails.plugins.DomainClassGrailsPlugin;
+import org.codehaus.groovy.grails.web.pages.FastStringWriter
+import freemarker.template.Template
+import grails.converters.JSON;
+import grails.plugins.springsecurity.Secured
+
+import com.macrobit.grails.plugins.attachmentable.domains.Attachment;
+import com.macrobit.grails.plugins.attachmentable.domains.AttachmentLink;
+import com.oneapp.cloud.core.*
+
+/**
+ *
+ * @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+
+class FormController {
+  def freemarkerConfig
+  def formTemplateService
+  def domainClassService
+  def springSecurityService
+  def sessionFactory
+  def attachmentableService
+  def grailsApplication
+  def sqlDomainClassService
+  def utilService
+  def clientService
+  
+  static allowedMethods = [save: "POST", update: "POST"]
+
+  def index = {
+    redirect(action: "list")
+  }
+  
+  
+  def list = {
+	def formCat = params.formCat=='S'?"S":"N"
+    params.max = Math.min(params.max ? params.int('max') : 10, 100)
+	params.offset = params.offset?:0
+    if (!params.sort) {
+      params.order = "desc"
+      params.sort = "dateCreated"
+    }
+    def formInstanceList
+    def formInstanceTotal
+	def formAdminList
+	def formTemplateList
+	User currentUser = springSecurityService?.currentUser
+    if (currentUser) {
+		if(currentUser.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+			redirect(controller:"login",action: "denied") 
+			return
+			}
+			formInstanceList = Form.createCriteria().list(readOnly:true,sort:params.sort,order:params.order,offset:params.offset,max:params.max){
+				eq 'tenantId',currentUser.userTenantId
+				if(formCat=='S'){
+					eq 'formCat','S'
+				}else{
+					not{
+						eq 'formCat','S'
+					}
+				}
+				if(currentUser.authorities*.authority.contains(Role.ROLE_TRIAL_USER)){
+					eq 'createdBy.id',currentUser.id
+				}
+			}
+			formInstanceTotal = formInstanceList.totalCount;
+    }
+	if(formInstanceList){
+		formAdminList = FormAdmin.createCriteria().list(){
+			'in' 'form.id',formInstanceList*.id
+		}
+		formAdminList.each{FormAdmin formAdmin->
+			if(!formAdmin.shortURL){
+				try{
+					formAdmin.shortURL = utilService.shorten("${grailsApplication.config.grails.serverURL}/PF/a?formId=${formAdmin.form.id}")
+				}catch(Exception e){
+					log.error("Problem creating short url: "+e)
+					formAdmin.shortURL = "${grailsApplication.config.grails.serverURL}/PF/a?formId=${formAdmin.form.id}"
+				}
+			}else if(formAdmin.shortURL?.indexOf("${grailsApplication.config.grails.serverURL}")>-1){
+				formAdmin.shortURL = utilService.shorten("${grailsApplication.config.grails.serverURL}/PF/a?formId=${formAdmin.form.id}")
+			}
+		}
+		formTemplateList = FormTemplate.createCriteria().list(readOnly:true){
+			'in' 'form.id',formInstanceList*.id
+			eq 'global',true
+		}
+	}
+	ApplicationConf appConf = ApplicationConf.read(1)
+	def formsForClient = appConf?.copyForms
+	def formsForTrial = appConf?.copyFormsTrial
+	def formIdsForClient = new ArrayList()
+	def formIdsForTrial =[]
+	if(formsForClient)
+		formIdsForClient = formsForClient*.id
+	if(formsForTrial)
+		formIdsForTrial = formsForTrial*.id
+		
+	def responseList=sqlDomainClassService.responseCountLastUpdate(formInstanceList)	
+    [formCat:formCat,formInstanceList: formInstanceList, formInstanceTotal: formInstanceTotal,currentUser:currentUser,formAdminList:formAdminList,formTemplateList:formTemplateList,formIdsForTrial: formIdsForTrial, formIdsForClient: formIdsForClient,responseList:responseList]  //findAllByCreatedBy(springSecurityService?.currentUser,params)
+  }
+  def create = {
+	def formCount
+	def formsAllowed
+	def appConf = ApplicationConf.read(1)
+	User currentUser = springSecurityService?.currentUser
+	if(currentUser?.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+		redirect(controller:"login",action: "denied")
+		return
+		}
+	if(currentUser.authorities*.authority.contains(Role.ROLE_TRIAL_USER)){
+		formCount = Form.countByCreatedBy(currentUser)
+		formsAllowed = appConf.formForTrial?:2
+	}else{
+		formCount = Form.count()
+		formsAllowed = appConf.form
+	}
+	def formCat = params.formCat?:"N"
+	if(formCount < formsAllowed){
+		def clientInstance = Client.get(currentUser.userTenantId)
+		def currentClientFormCount = Form.findAllByTenantId(currentUser.userTenantId).size()
+		if(currentClientFormCount < clientInstance.form){
+			def formInstance = new Form()
+			formInstance.formCat = formCat
+			formInstance.properties = params
+			
+				//if ( flash.message ) {
+				flash.formCounter = Form.list().size() + 1
+				//flash.formCounter = !flash.formCounter ? 1 : flash.formCounter + 1
+				formInstance.name = "form${flash.formCounter}"
+				formInstance.settings = ""
+				// }
+				renderView("create", formInstance,
+						formTemplateService.getCreateViewTemplate(request, flash, formInstance))
+		}else{
+			flash.message ="${message(code: 'client.form.maxlimit',args:[clientInstance.form,g.link(controller:'dropDown',action:'clientUsage'){message(code:'form.creation.maxlimit.linkText','default':'here')}],default:'You can only create ${clientInstance.form} forms.')}"
+			flash.defaultMessage = flash.message
+			redirect(action: "list",params:[formCat:formCat])
+		}
+	}else{
+		flash.message ="${message(code: 'form.creation.maxlimit',args:[message(code:'form.creation.maxlimit.linkText','default':'here')], default:'You have reached the maximum form creation Limit. Please contact your Administrator')}"
+		flash.defaultMessage = flash.message
+		redirect(action: "list",params:[formCat:formCat])
+		
+	}
+    
+  }
+
+  private renderView(name, formInstance, templateText) {
+    if (flash.formCounter == null)
+    flash.formCounter = ""
+    FastStringWriter out = new FastStringWriter()
+    new Template(name,
+            new StringReader(templateText),
+            freemarkerConfig.configuration).process([formInstance: formInstance, flash: flash], out)
+    render out.toString()
+  }
+
+  def save = {
+	  def formCount
+	  def formsAllowed
+	  def appConf = ApplicationConf.read(1)
+	  User currentUser = springSecurityService?.currentUser
+	  if(currentUser?.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+		  redirect(controller:"login",action: "denied")
+		  return
+		  }
+	  if(currentUser.authorities*.authority.contains(Role.ROLE_TRIAL_USER)){
+		  formCount = Form.countByCreatedBy(currentUser)
+		  formsAllowed = appConf.formForTrial?:2
+	  }else{
+		  formCount = Form.count()
+		  formsAllowed = appConf.form
+	  }
+	  def formCat = params.formCat?:"N" 
+	  if(formCount < formsAllowed){
+		  def clientInstance = Client.get(currentUser.userTenantId)
+		  def currentClientFormCount = Form.findAllByTenantId(currentUser.userTenantId).size()
+		  if(currentClientFormCount < clientInstance.form){
+			def formInstance = new Form(params)
+			formInstance.tenantId = currentUser.userTenantId
+			def formName = "Untitled Form"
+			// update the form name
+			def formCnt = new FormCounter().save(flush:true)
+			formInstance.name = "Form${formCnt.id}"
+			// end of update
+			def fieldsToBeDeleted = formInstance.fieldsList.findAll { !it || it.status == FieldStatus.D }
+			if (fieldsToBeDeleted) {
+			  formInstance.fieldsList.removeAll(fieldsToBeDeleted)
+			}
+			formInstance.domainClass = domainClassService.getDomainClass(formInstance)
+			formInstance.persistableFieldsCount = formTemplateService.getPersistableFieldsCount(formInstance.fieldsList)
+			//			domainClassService.registerDomainClass formInstance.domainClass.source
+			formInstance.createdBy =  currentUser
+				try{
+					def setting=JSON.parse(formInstance.settings)
+					if(!setting?.en.name||setting?.en.name.trim().equals("")){
+						 setting?.en.name=formName
+						 formInstance.settings=setting.toString()
+						}
+					formName = setting?.en.name
+				}catch(Exception e){}
+			if (formInstance.save(flush: true)) {
+				def resultAttachment = attachUploadedFilesTo(formInstance,null)
+				def formWithSql = grailsApplication.config.form.workWithSQL
+				if(formWithSql){
+					sqlDomainClassService.createForm(formInstance)
+				}
+			  sessionFactory.currentSession.flush() 
+			  sessionFactory.currentSession.clear()
+			  if(params.extraParameter == 'preview'){
+				  redirect(controller:'PF',action: "preview", params:[formId: formInstance.id])
+			  }else if(params.extraParameter == 'settings'){
+			  	redirect(controller:'formAdmin',action: "create", params:[formId: formInstance.id])
+			  }else{
+				  if(formInstance.formCat!='S')
+					  flash.message = "${message(code: 'form.created.message', args: [message(code: 'form.label', default: 'Form'), formName?:formInstance.id, g.link(controller:'formAdmin',action:'create',params:[formId:formInstance.id]){message(code:'form.created.formAdminClickHere',default:'here')}])}"
+				  else
+				      flash.message = "${message(code: 'subform.created.message', args: [message(code: 'form.label', default: 'Form'),formName?:formInstance.id ])}"
+			  	  redirect(action: "edit", id: formInstance.id)
+			  }
+			}
+			else {
+			  formInstance.fieldsList.sort { a, b -> return a.sequence.compareTo(b.sequence) }
+			  renderView("create", formInstance,
+					  formTemplateService.getCreateViewTemplate(request, flash, formInstance))
+			}
+		  }else{
+		  flash.message ="${message(code: 'client.form.maxlimit',args:[clientInstance.form,g.link(controller:'dropDown',action:'clientUsage'){message(code:'form.creation.maxlimit.linkText','default':'here')}],default:'You can only create ${clientInstance.form} forms.')}"
+		  flash.defaultMessage = flash.message
+		  redirect(action: "list",params:[formCat:formCat])
+	  }
+  }else{
+	  flash.message ="${message(code: 'form.creation.maxlimit',args:[message(code:'form.creation.maxlimit.linkText','default':'here')], default:'You have reached the maximum form creation Limit. Please contact your Administrator')}"
+	  flash.defaultMessage = flash.message
+	  redirect(action: "list",params:[formCat:formCat])
+	  
+  }
+  }
+  def show = {
+    def formInstance = Form.get(params.id)
+
+    if (!formInstance ||  (formInstance.tenantId != springSecurityService?.currentUser?.userTenantId )) {
+      flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'form.label', default: 'Form'), params.id])}"
+      println "FormController-show: form not found $params.id"
+      redirect(action: "list")
+    }
+    else {
+      // TODO: workaround for default sort order not working
+      formInstance.fieldsList.sort { a, b -> return a.sequence.compareTo(b.sequence) }
+      renderView("show", formInstance,
+              formTemplateService.getShowViewTemplate(request, flash, formInstance))
+    }
+  }
+
+  def edit = {
+    def formInstance
+	try{
+	formInstance = Form.read(params.id)
+	}catch(Exception e){}
+	User currentUser = springSecurityService?.currentUser
+	if(currentUser?.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+		redirect(controller:"login",action: "denied")
+		return
+		}
+    if (!formInstance  || (formInstance.tenantId != currentUser?.userTenantId )) {
+      flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'form.label', default: 'Form'), params.id])}"
+	  flash.defaultMessage = flash.message
+      redirect(action: "list")
+    }
+    else {
+		def formTemplate = FormTemplate.findAllByFormAndGlobal(formInstance,true)?true:false
+		//def formForClient= ApplicationConf.findByIdAndCopyForms(1,formInstance)?.copyForms
+		def formForClient= ApplicationConf.createCriteria().list(){
+			eq "id",new Long(1)
+			copyForms{
+				eq "id",formInstance.id
+			}
+		}?true:false
+	    if(formTemplate && formForClient)
+			flash.deletedefaultmessage="Form is used for Global template and for newly created clients. Are you sure you want to delete this form?"
+		else if(formTemplate)
+			flash.deletedefaultmessage="Global template using this form exists. Are you sure you want to delete this form?"
+		else if(formForClient)
+			flash.deletedefaultmessage="Form in use to be copied for newly created clients. Are you sure you want to delete this form?"
+		else
+			flash.deletedefaultmessage=" Are you sure ?"
+			
+      renderView("edit", formInstance,
+              formTemplateService.getEditViewTemplate(request, flash, formInstance))
+    }
+  }
+  def update = {
+	 params.id=params.id.replaceAll(',','');
+    def formInstance = Form.read(params.id) 
+	User currentUser = springSecurityService?.currentUser
+	if(currentUser?.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+		redirect(controller:"login",action: "denied")
+		return
+		}
+    if (formInstance && (formInstance.tenantId ==  currentUser?.userTenantId )) {
+		def formTemplate = FormTemplate.findAllByFormAndGlobal(formInstance,true)?true:false
+		//def formForClient= ApplicationConf.findByIdAndCopyForms(1,formInstance)?.copyForms
+		def formForClient= ApplicationConf.createCriteria().list(){
+			eq "id",new Long(1)
+			copyForms{
+				eq "id",formInstance.id
+			}
+		}?true:false
+		if(formTemplate && formForClient)
+			flash.deletedefaultmessage="Form is used for Global template and for newly created clients. Are you sure you want to delete this form?"
+		else if(formTemplate)
+			flash.deletedefaultmessage="Global template using this form exists. Are you sure you want to delete this form?"
+		else if(formForClient)
+			flash.deletedefaultmessage="Form in use to be copied for newly created clients. Are you sure you want to delete this form?"
+		else
+			flash.deletedefaultmessage=" Are you sure ?"
+		
+		def formName ="Untitled Form"
+      if (params.version) {
+        def version = params.version.replaceAll(",","").toLong()
+        if (formInstance.version > version) {
+			flash.message = message(code:"default.optimistic.locking.failure",args:['form'],'default':'Another user has updated this Form while you were editing')
+			flash.defaultMessage = flash.message
+          //formInstance.errors.rejectValue("version", "default.optimistic.locking.failure", [message(code: 'form.label', default: 'Form')] as Object[], "Another user has updated this Form while you were editing")
+          redirect(action:"edit", id:formInstance.id)
+          return
+        }
+      }
+	  
+      formInstance.properties = params
+	  try{
+		  def setting=JSON.parse(formInstance.settings)
+		  if(!setting?.en.name||setting?.en.name.trim().equals("")){
+			   setting?.en.name=formName
+			   formInstance.settings=setting.toString()
+			  }
+		  formName = setting?.en.name
+	  }catch(Exception e){}
+	  def fieldsToBeDeleted = formInstance.fieldsList.findAll{!it}
+	  formInstance.fieldsList.removeAll(fieldsToBeDeleted)
+	  
+	  updateDomainClassSource(formInstance, null)
+	  sqlDomainClassService.updateForm(formInstance)
+//      formInstance.merge()
+	  if (!formInstance.hasErrors() && formInstance.save(flush: true)) {
+		  def imageTypeField = formInstance.fieldsList.findAll{it.type=='ImageUplaod'}
+		  def oldAttachmentList = formInstance.getAttachments(imageTypeField.name)
+		  def resultAttachment = attachUploadedFilesTo(formInstance,null)
+		  def inputNames = resultAttachment.uploadedFiles.inputName
+		  if(inputNames){
+			 oldAttachmentList= oldAttachmentList.findAll{inputNames.contains(it.inputName)}
+			  oldAttachmentList?.each{a->
+				  attachmentableService.removeAttachment(a)
+			  }
+		  }
+		sessionFactory.currentSession.flush()
+		sessionFactory.currentSession.clear()
+		if(params.extraParameter == 'preview'){
+			redirect(controller:'PF',action: "preview", params:[formId: formInstance.id])
+		}else if(params.extraParameter == 'settings'){
+			redirect(controller:'formAdmin',action: "create", params:[formId: formInstance.id])
+		}else{
+			if(formInstance.formCat!='S')
+				flash.message = "${message(code: 'form.updated.message', args: [message(code: 'form.label', default: 'Form'), formName?:formInstance.id, g.link(controller:'formAdmin',action:'create',params:[formId:formInstance.id]){message(code:'form.created.formAdminClickHere',default:'here')}])}"
+			else
+				flash.message = "${message(code: 'subform.updated.message', args: [message(code: 'form.label', default: 'Form') ,formName?:formInstance.id])}"
+			redirect(action: "edit", id: formInstance.id)
+		}
+      }
+      else {
+        formInstance.fieldsList.sort { a, b -> return a.sequence.compareTo(b.sequence) }
+        renderView("edit", formInstance,
+                formTemplateService.getEditViewTemplate(request, flash, formInstance))
+      }
+    }
+    else {
+      flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'form.label', default: 'Form'), params.id])}"
+      redirect(action: "list")
+    }
+  }
+
+  def updateDomainClassSource(Form formInstance, def oldPersistentFields) {
+      formInstance.domainClass.source = domainClassService.getSource(formInstance)
+	  if(formInstance.domainClass.isDirty())
+      	formInstance.domainClass.updated = true
+  }
+  def delete = {
+	  	params.id=params.id.replaceAll(',','');
+	    def formInstance = Form.get(params.id)
+		def formCat = formInstance.formCat?:"N"
+		User currentUser = springSecurityService?.currentUser
+		if(currentUser?.getAuthorities()*.authority.contains(Role.ROLE_HR_MANAGER)){
+			redirect(controller:"login",action: "denied")
+			return
+			}
+		if (formInstance && (formInstance.tenantId = currentUser?.userTenantId )) {
+			formCat = formInstance.formCat
+			try{
+				if(formCat == "S"){
+					def fields = Field.findAllBySettingsLike("%subForm\":\"${params.id}\"%")
+					try{
+						def session = sessionFactory.getCurrentSession()
+						def connection = session.connection()
+						def state = connection.createStatement()
+						fields.each{Field field->
+							state.addBatch("delete from ${field.form.name}_${field.name}")
+							def jsonSettings = JSON.parse(field.settings)
+							jsonSettings.subForm = ""
+							field.settings = jsonSettings.toString()
+							field.save()
+						}
+						state.executeBatch()
+					}catch(Exception e){
+						log.error "Problem removing subForm references: "+e
+					}
+				}else if(formCat == 'N'){
+					def subFormFields = formInstance.fieldsList.findAll{it.type == 'SubForm'}
+					def session = sessionFactory.getCurrentSession()
+					def connection = session.connection()
+					def state = connection.createStatement()
+					subFormFields.each{Field field->
+						def settings = JSON.parse(field.settings)
+						if(settings.subForm){
+							Form subForm = Form.read(settings.subForm)
+							if(subForm){
+								try{
+									state.addBatch("delete from ${subForm.name} where id in (select ${field.name}_long from ${formInstance.name}_${field.name})")
+									state.addBatch("drop table ${formInstance.name}_${field.name}")
+									state.executeBatch()
+								}catch(Exception e){
+									log.error "Problem removing extra data of Normal form: "+e
+								}
+							}
+						}
+					}
+				}else if(formCat == 'M'){
+					try{
+						def fields = Field.findAllBySettingsLike("%mapMasterForm\":\"${params.id}\"%")
+						fields.each{Field field->
+							def jsonSettings = JSON.parse(field.settings)
+							jsonSettings.mapMasterForm = ""
+							jsonSettings.mapMasterField = ""
+							field.settings = jsonSettings.toString()
+							field.save()
+						}
+					}catch(Exception e){
+						log.error "Problem removing Master form references: "+e
+					}
+				}
+			}catch(Exception ex){
+				log.error "Problem removing related references: "+ex
+			}
+			def activityFeedConfig = ActivityFeedConfig.findByConfigName(formInstance.name+"."+formInstance.name)
+			if(activityFeedConfig){
+				ActivityFeed.findAllByConfig(activityFeedConfig).each {ActivityFeed obj ->
+					obj.delete()
+				}
+				activityFeedConfig.delete(flush:true)
+			}
+			def formName = ""
+			try{
+				formName = JSON.parse(this.settings)."en".name
+			}catch(Exception e){}
+			
+			// Delete FormAdmin if it exists
+			def formAdminInstance = FormAdmin.findByForm(formInstance)
+			if ( formAdminInstance ){
+				formAdminInstance.webHookDetails?.delete()
+				formAdminInstance.mailChimpDetails?.delete()
+				formAdminInstance.delete(flush:true)
+			}
+			
+			def formTemplateList = FormTemplate.findAllByForm(formInstance)
+			if ( formTemplateList ){
+				formTemplateList.each { FormTemplate obj ->
+					obj.delete(flush:true)
+				}
+			}
+			
+			def appConf = ApplicationConf.get(1)
+			def copyForms = appConf?.copyForms
+			def copyFormsTrial= appConf?.copyFormsTrial
+			if(copyForms){
+				def thisFormCopy = copyForms.find{it.id == formInstance.id}
+				if(thisFormCopy){
+					appConf.copyForms = []
+					copyForms.remove(thisFormCopy)
+					appConf.copyForms = copyForms
+					appConf.save(flush:true)
+				}
+			}
+			if(copyFormsTrial){
+				def thisFormCopy = copyFormsTrial.find{it.id == formInstance.id}
+				if(thisFormCopy){
+					appConf.copyFormsTrial = []
+					copyFormsTrial.remove(thisFormCopy)
+					appConf.copyFormsTrial = copyFormsTrial
+					appConf.save(flush:true)
+				}
+			}
+	        formInstance.delete(flush: true)
+	         flash.args = [params.id]
+			 flash.defaultMessage = "${formCat == 'M'?'Master ':(formCat=='S'?'Sub ':'')}Form ${formName} deleted"
+	         flash.message = "${message(code: 'default.deleted.message', args: [message(code: 'form.label', default: 'Form'), formName?:params.id])}"
+			 sessionFactory.currentSession.flush()
+			 sessionFactory.currentSession.clear()
+	         redirect(action: "list",params:[formCat:formCat])
+	   }else {
+	      flash.message = "${message(code: 'default.not.found.message', args: [message(code: 'form.label', default: 'Form'), params.id])}"
+	      redirect(action: "list",params:[formCat:formCat])
+
+    }
+  }
+  
+	def getControlHolder = {
+		def name = params.name
+		def settings = params.settings
+		def type = params.type
+		def rel = params.rel
+		def templateText = formTemplateService.getWidgetTextAjax(name,settings,type,rel,request)
+		render templateText
+	}
+
+  def afterInterceptor = { model, modelAndView ->
+  		if (request['isMobile'] && modelAndView != null ) {
+  			println "FormController-afterInterceptor: "+request['isMobile'] 
+  			modelAndView.viewName = modelAndView.viewName + "_m"
+ 	 }
+	}
+}

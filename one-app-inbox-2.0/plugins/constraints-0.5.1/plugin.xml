@@ -1,0 +1,507 @@
+<plugin name='constraints' version='0.5.1' grailsVersion='1.1.1 &gt; *'>
+  <author>Geoff Lane</author>
+  <authorEmail>geoff@zorched.net</authorEmail>
+  <title>Custom domain constraints plugin</title>
+  <description>
+    This plugin allows you to create custom domain validations that are applied the same
+    way as built-in domain constraints.
+    </description>
+  <documentation>http://grails.org/plugin/constraints</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>Config</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+    <resource>AddressCommand</resource>
+    <resource>TestController</resource>
+    <resource>net.zorched.test.Address</resource>
+    <resource>net.zorched.test.Category</resource>
+    <resource>net.zorched.test.Foo</resource>
+    <resource>net.zorched.test.InjectedDom</resource>
+    <resource>net.zorched.test.Login</resource>
+    <resource>net.zorched.test.Person</resource>
+    <resource>net.zorched.test.User</resource>
+    <resource>net.zorched.test.MyTestService</resource>
+    <resource>net.zorched.constraints.ComparisonConstraint</resource>
+    <resource>net.zorched.constraints.SsnConstraint</resource>
+    <resource>net.zorched.constraints.UsPhoneConstraint</resource>
+    <resource>net.zorched.constraints.UsZipConstraint</resource>
+    <resource>net.zorched.test.AddressAnno</resource>
+    <resource>net.zorched.test.BeginsWithConstraint</resource>
+    <resource>net.zorched.test.InjectedConstraint</resource>
+    <resource>net.zorched.test.StartsAndEndsWithConstraint</resource>
+    <resource>net.zorched.test.TwoLongConstraint</resource>
+    <resource>net.zorched.test.UniqueEgConstraint</resource>
+  </resources>
+  <dependencies />
+  <behavior>
+    <method name='setParams' artefact='Constraint' type='compareTo'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='compareTo'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='compareTo'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='compareTo'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='compareTo'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='compareTo'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='compareTo'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='compareTo'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.SsnConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.UsPhoneConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.constraints.UsZipConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.test.BeginsWithConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.test.InjectedConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.test.StartsAndEndsWithConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.test.TwoLongConstraint'>
+      <description />
+    </method>
+    <method name='setParams' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getParams' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+    </method>
+    <method name='setHibernateTemplate' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getHibernateTemplate' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintOwningClass' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintOwningClass' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+    </method>
+    <method name='setConstraintPropertyName' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+      <argument type='java.lang.Object' />
+    </method>
+    <method name='getConstraintPropertyName' artefact='Constraint' type='net.zorched.test.UniqueEgConstraint'>
+      <description />
+    </method>
+    <property name='params' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='compareTo' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.SsnConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.UsPhoneConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.constraints.UsZipConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.BeginsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.InjectedConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.StartsAndEndsWithConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.TwoLongConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='params' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='hibernateTemplate' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintOwningClass' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+    <property name='constraintPropertyName' type='net.zorched.test.UniqueEgConstraint' artefact='Constraint'>
+      <description />
+    </property>
+  </behavior>
+</plugin>

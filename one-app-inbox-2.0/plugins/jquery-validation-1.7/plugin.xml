@@ -1,0 +1,17 @@
+<plugin name='jquery-validation' version='1.7' grailsVersion='1.2 &gt; *'>
+  <author>Lim Chee Kin</author>
+  <authorEmail>limcheekin@vobject.com</authorEmail>
+  <title>JQuery Validation Plugin</title>
+  <description>\
+Simply supplies jQuery Validation resources, depends on jQuery plugin. Use this plugin to avoid resource duplication and conflicts.
+</description>
+  <documentation>http://grails.org/plugin/jquery-validation</documentation>
+  <resources>
+    <resource>UrlMappings</resource>
+    <resource>org.grails.jquery.validation.JqueryValidationTagLib</resource>
+  </resources>
+  <dependencies>
+    <plugin name='jquery' version='1.4.2.7' />
+  </dependencies>
+  <behavior />
+</plugin>

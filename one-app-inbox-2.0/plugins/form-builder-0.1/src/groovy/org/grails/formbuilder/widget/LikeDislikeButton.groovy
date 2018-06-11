@@ -1,0 +1,153 @@
+package org.grails.formbuilder.widget
+
+import org.grails.formbuilder.FormBuilderConstants
+import org.grails.formbuilder.FormDesignerView
+import org.apache.commons.lang.StringUtils
+
+/**
+ *
+ * @author <a href='mailto:admin@yourdomain.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+class LikeDislikeButton extends Widget {
+  String getFieldStyles(Object settings, Locale locale) {
+    String language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+	String display = settings.hideFromUser && !isRoleGranted?'display:none; ':''
+    String fontFamily = settings."${language}".styles.fontFamily == 'default' ? FormBuilderConstants.EMPTY_STRING : "font-family: ${settings."${language}".styles.fontFamily}; "
+    String labelColor = settings.styles.label.color == 'default' ? FormBuilderConstants.EMPTY_STRING : "color: ${((settings.styles.label.color+'').indexOf('rgb')>-1?'':'#')+settings.styles.label.color}; "
+	 String labelBackgroundColor = settings.styles.label.backgroundColor == 'default' ? FormBuilderConstants.EMPTY_STRING : "background-color: ${((settings.styles.label.backgroundColor+'').indexOf('rgb')>-1?'':'#')+settings.styles.label.backgroundColor}; "
+    return "${fontFamily}${labelColor}${labelBackgroundColor}${display}"
+  }
+
+  public String getToCamel(String string) {
+    String result = "";
+    for (int i = 0; i < string.length(); i++) {
+
+      if (i == 0) {
+        result += string[i].toLowerCase()
+      } else {
+        result += string[i]
+      }
+    }
+    return result
+  }
+
+
+
+
+  String getWidgetTemplateText(String name, Object settings,
+                               Locale locale, FormDesignerView formDesignerView, Object domainInstance) {
+    return widgetTemplateText(name, settings, locale, formDesignerView, false, domainInstance)
+  }
+
+  private String widgetTemplateText(String name, Object settings,
+                                    Locale locale, FormDesignerView formDesignerView, boolean readOnly, Object domainInstance = null) {
+    String language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+    def styles = settings."${language}".styles
+    String fontWeight = styles.fontStyles[0] == 1 ? 'bold' : 'normal'
+    String fontStyle = styles.fontStyles[1] == 1 ? 'italic' : 'normal'
+    String textDecoration = styles.fontStyles[2] == 1 ? 'underline' : 'none'
+    String fontFamily = styles.fontFamily == 'default' ? FormBuilderConstants.EMPTY_STRING : "font-family: ${styles.fontFamily}; "
+    String fontSize = styles.fontSize == 'default' ? FormBuilderConstants.EMPTY_STRING : "font-size: ${styles.fontSize}px; "
+    String valueColor = settings.styles.value.color == 'default' ? FormBuilderConstants.EMPTY_STRING : "color: ${((settings.styles.value.color+'').indexOf('rgb')>-1?'':'#')+settings.styles.value.color}; "
+	  String valueBackgroundColor = settings.styles.value.backgroundColor == 'default' ? FormBuilderConstants.EMPTY_STRING : "background-color: ${((settings.styles.value.backgroundColor+'').indexOf('rgb')>-1?'':'#')+settings.styles.value.backgroundColor}; "
+	  String descriptionColor = settings.styles.description.color == 'default' ? FormBuilderConstants.EMPTY_STRING : "color: ${((settings.styles.description.color+'').indexOf('rgb')>-1?'':'#')+settings.styles.description.color}; "
+	  String descriptionBackgroundColor = settings.styles.description.backgroundColor == 'default' ? FormBuilderConstants.EMPTY_STRING : "background-color: ${((settings.styles.description.backgroundColor+'').indexOf('rgb')>-1?'':'#')+settings.styles.description.backgroundColor}; "
+    String textField
+    def value = settings."${language}".value
+
+    String lab = name//settings."${language}".label
+	
+	
+	def countOfLike 
+	def countOfDislike
+	if(domainInstance){
+		countOfLike = domainInstance[name+'Like']
+		countOfDislike = domainInstance[name+'Dislike']
+	}
+    def count = 0;
+		if(isEmailEmbedFrom){
+				textField="";
+				if(!settings.likeAndVote){
+				textField = textField + """<div>"""
+				value.each{l->
+				  count++;
+					  if(count == 1){
+						  textField = textField + """<div
+							  ><span>${l.encodeAsHTML()}</span><span>&nbsp; (${!formDesignerView?countOfLike:'+1'} Likes)</span></div>"""
+						  }else{
+						  textField = textField + """<div
+							  ><span>${l.encodeAsHTML()}</span><span>&nbsp; (${!formDesignerView?countOfDislike:'-1'} Dislikes)</span></div>"""
+						  }
+				}
+				 textField = textField +"""</div>"""
+				}else{
+				textField = textField + """<div>+${!formDesignerView?countOfLike:'1'}Votes</div>"""
+				}
+			}else{
+				textField="";
+				textField = textField + """ <div class="likeDislikeOption" style="${settings.likeAndVote?"display:none;":""}"> """
+				def fieldValue
+				if(!formDesignerView){
+					fieldValue =  domainInstance."${name}"
+				}
+				value.each{l->
+				  count++;
+					  if(count == 1){
+						  textField = textField + """<div
+							  ><div class="thumbStyle ${fieldValue == "Like"?"thumbUpSel":"thumbUp"}" id="${name}thumbsUp" onclick="setFeildValue${name}('Like','LikeDislike')">&nbsp;</div><span>${l.encodeAsHTML()}</span><span>&nbsp; (${!formDesignerView?countOfLike:'+1'} Likes)</span></br></br></div>"""+(!formDesignerView?('<script>$("#'+name+count+'").val("'+l.encodeAsJavaScript()+'")'+(domainInstance."${name}"==l?'.attr("checked","checked")':'')+'</script>'):'')
+						  }else{
+						  textField = textField + """<div
+							  ><div class="thumbStyle ${fieldValue == "Dislike"?"thumbDownSel":"thumbDown"}" id="${name}thumbsDown" onclick="setFeildValue${name}('Dislike','LikeDislike')">&nbsp;</div><span>${l.encodeAsHTML()}</span><span>&nbsp; (${!formDesignerView?countOfDislike:'-1'} Dislikes)</span></br></br></div>"""+(!formDesignerView?('<script>$("#'+name+count+'").val("'+l.encodeAsJavaScript()+'")'+(domainInstance."${name}"==l?'.attr("checked","checked")':'')+'</script>'):'')
+						  }
+				}
+				textField = textField + """</div><div
+						class="voteOption" style="${settings.likeAndVote?"":"display:none;"}margin-top:20px;"
+					  ><div class="button1 small green" id="${name}Vote" style="padding: 12px 7px;"> +${!formDesignerView?countOfLike:'1'} Votes</div><br/><br/><div
+					  class="button button-gray" onclick="setFeildValue${name}('Like','Vote')">Vote It!</div></div
+				  ><input type="hidden" name="${name}" id="${name}" value="${fieldValue?:''}"
+				  ><script>
+						function setFeildValue${name}(selectVal,selectOption){
+								var fieldVal = \$("#${name}").val()
+								if(selectOption == 'LikeDislike'){
+									if(selectVal == 'Like'){
+										\$("#${name}thumbsUp").attr('class', 'thumbStyle thumbUpSel')
+									  \$("#${name}thumbsDown").attr('class', 'thumbStyle thumbDown')
+									}else{
+									  \$("#${name}thumbsUp").attr('class', 'thumbStyle thumbUp')
+									  \$("#${name}thumbsDown").attr('class', 'thumbStyle thumbDownSel')
+								  }
+								}else{
+								  if(fieldVal == 'Like' || fieldVal == 'Dislike'){
+									  alert("You have already voted on this question")
+								  }else{
+									  var newVoteCount = ${countOfLike}+1
+									  \$("#${name}Vote").html("+"+newVoteCount+" Votes")
+								  }
+							  }
+								\$("#${name}").val(selectVal)
+							}
+					</script>"""
+			}
+   
+    return """<div><div 
+				class="${Widget.fullLength?'customLengthLabel':'fullLengthLabel'}"><label for="${name}" style="font-weight: ${fontWeight};font-style: ${fontStyle};${fontSize}" ><span 
+				style="text-decoration: ${textDecoration};line-height:16px;">${settings."${language}".label.encodeAsHTML()}</span><em>&nbsp;${settings.required ? '*' : FormBuilderConstants.EMPTY_STRING}</em></label></div><div 
+				class="${Widget.fullLength?'customLengthField':'fullLengthField'}">${textField}<p
+				class="formHint" style="${descriptionColor}${descriptionBackgroundColor}">${settings."${language}".description.encodeAsHTML()}</p></div></div>"""
+  }
+
+  String getFieldConstraints(Object settings) {
+    if (settings.restriction == 'no') {
+      return FormBuilderConstants.EMPTY_STRING
+    } else {
+      return "${settings.restriction}:true"
+    }
+  }
+
+  String getWidgetReadOnlyTemplateText(String name, Object settings,
+                                       Locale locale, FormDesignerView formDesignerView, Object domainInstance) {
+    return widgetTemplateText(name, settings, locale, formDesignerView, true, domainInstance)
+  }
+}

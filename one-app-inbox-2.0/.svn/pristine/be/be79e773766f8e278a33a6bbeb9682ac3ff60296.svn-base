@@ -1,0 +1,55 @@
+package org.grails.formbuilder.widget
+
+import org.grails.formbuilder.FormDesignerView
+
+/**
+ *
+ * @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+class PlainText extends Widget {
+ String getFieldClasses(Object settings, Locale locale) {
+	  String language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+		return "middleAlign"
+  }
+ 
+ String getFieldStyles(Object settings, Locale locale) { 
+	 String language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+	 String display = settings.hideFromUser && !isRoleGranted?'display:none; ':''
+	 return "font-weight: ${settings."${language}".styles.fontStyles[0] == 1 ? 'bold' : 'normal' };" +
+			    "font-style: ${settings."${language}".styles.fontStyles[1] == 1 ? 'italic' : 'normal' };" +
+			    "text-decoration: ${settings."${language}".styles.fontStyles[2] == 1 ? 'underline' : 'none' };" +
+				  "font-family: ${settings."${language}".styles.fontFamily}; " +
+				  "font-size: ${settings."${language}".styles.fontSize}px; " +
+					"color: #${settings.styles.color}; " +
+					"background-color: #${settings.styles.backgroundColor}; "+display
+  }
+ 
+ String getWidgetTemplateText(String name, Object settings,  
+	                            Locale locale, FormDesignerView formDesignerView, Object domainInstance) {
+		String language = locale.language == 'en' ? 'en' : "${locale.language}_${locale.country}"
+		String text = settings."${language}".text
+        if(!text){
+          text= settings."${language}".label
+        }
+/*<<<<<<< .mine
+		//String styleClass = settings."${language}".classes[0]
+		return """<div class="PlainText topAlign">${text}</div>"""
+=======*/
+		String styleClass = ""
+		settings."${language}".classes.each{
+			styleClass += (it+" ")
+		}
+		return """<style type="text/css">#${name}ControlHolder h1{color:#${settings.styles.color} !important}#${name}ControlHolder h2{color:#${settings.styles.color} !important}#${name}ControlHolder h3{color:#${settings.styles.color} !important}
+                    #${name}ControlHolder h4{color:#${settings.styles.color} !important}#${name}ControlHolder h5{color:#${settings.styles.color} !important}#${name}ControlHolder h6{color:#${settings.styles.color} !important}
+                    #${name}ControlHolder p{color:#${settings.styles.color} !important}</style>
+            <div class="PlainText ${styleClass}">${text}</div>"""
+   }
+								
+ String getWidgetReadOnlyTemplateText(String name, Object settings,
+									                    Locale locale, FormDesignerView formDesignerView, Object domainInstance) {
+														
+    return null
+  }
+}

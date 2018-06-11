@@ -1,0 +1,453 @@
+package org.grails.paypal
+import grails.plugin.multitenant.core.util.TenantUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Currency;
+
+import com.oneapp.cloud.core.*
+import grails.util.Environment
+class PaypalController {
+
+	static allowedMethods = [buy: 'POST', notifyPaypal: 'POST']
+	def sqlDomainClassService
+    def sendAsyncEmailService
+	def notify = {
+		 log.debug "${new Date()} Received IPN notification from PayPal Server ${params}"
+		 println "Received IPN notification from PayPal Server :"
+		 def config = grailsApplication.config.grails.paypal
+		 def server = config.server
+		 def login = config.login
+		 if(Environment.current != Environment.PRODUCTION){
+			   println "DUMMY SETUP FOR CURRENT(${Environment.current}) Environment"
+			   server = config.testServer
+			   login = "ashu8006kumar-facilitator@gmail.com"
+		 }else{
+		       println "CURRENT(${Environment.current}) Environment"
+		 }
+		boolean newPayment = false
+		
+		def oldPayment
+		def payment
+		if(params.transactionId){
+			println "Case 1"
+			payment = Payment.findByTransactionId(params.transactionId)
+		}else if(params.txn_id){
+		println "Case 2"
+			payment = Payment.findByPaypalTransactionId(params.txn_id)
+			if(params.subscr_id){
+				println "Case 2.1"
+				if(payment){
+					println "Case 2.1.1"
+					if(!payment.subscrId){
+						payment.subscrId = params.subscr_id
+					}
+				}else{
+					oldPayment = Payment.findBySubscrId(params.subscr_id)
+					if(oldPayment){
+						println "Case 2.2.2 its a new payment"
+						newPayment = true
+						payment = new Payment()
+						payment.transactionId=oldPayment.transactionId
+						payment.subscrId=oldPayment.subscrId
+						payment.paypalTransactionId=oldPayment.paypalTransactionId
+						payment.status =oldPayment.status
+						payment.formId=oldPayment.formId
+						payment.instanceId=oldPayment.instanceId
+						payment.tax = oldPayment.tax // tax applies to entire payment, not to each item!
+						payment.discountCartAmount = oldPayment.discountCartAmount // optional currency value; if specified will override individual item discounts
+						payment.currency = oldPayment.currency// default to USD
+						payment.buyerId=oldPayment.buyerId
+						payment.buyerInformation=oldPayment.buyerInformation // details, provided by Paypal
+						payment.paypalTransactionId = params.txn_id
+						payment.paymentItems = []
+						oldPayment.paymentItems.each{PaymentItem paymentItem->
+							def paymentItemNew = new PaymentItem()
+							paymentItemNew.properties = paymentItem.properties
+							payment.addToPaymentItems(paymentItemNew)
+						}
+					}else{
+						    println "Case 2.2.3 First time check "
+							newPayment=false
+						if(params.option_name1){
+							payment = Payment.findByTransactionId(params.option_name1)
+							payment.subscrId = params.subscr_id
+							payment.paypalTransactionId = params.txn_id
+						}else{
+						      println "Payment not found send EMAIL to admin Paypal T ID ${params.txn_id} sbsID ${params.subscr_id}"
+							  sendAsyncEmailService.paypalClientNotFound("${grailsApplication.config.grails.plugins.springsecurity.ui.register.emailFrom}",
+								   "admin@yourdomain.com", params.txn_id, params.subscr_id)
+					  }
+					}
+				}
+			}
+		}
+		if(payment?.formId && payment?.instanceId){
+			try{
+				org.grails.formbuilder.Form form = org.grails.formbuilder.Form.read(payment.formId)
+				def paypalField = form?.fieldsList?.find{it.type == 'Paypal'}
+				if(paypalField){
+					def settings = grails.converters.JSON.parse(paypalField.settings)
+					if(settings){
+						login = settings.emid?:login
+						server = settings.test?config.testServer:server
+					}
+				}
+			}catch(Exception e){}
+		}
+		
+		if (!server || !login) throw new IllegalStateException("Paypal misconfigured! You need to specify the Paypal server URL and/or account email. Refer to documentation.")
+
+		params.cmd = "_notify-validate"
+		def queryString = params.toQueryString()[1..-1]
+
+		log.debug "Sending back query $queryString to PayPal server $server"
+		println "Sending back query $queryString to PayPal server $server"
+		def url = new URL(server)
+		def conn = url.openConnection()
+		conn.doOutput = true
+		def writer = new OutputStreamWriter(conn.getOutputStream())
+		writer.write queryString
+		writer.flush()
+
+		def result = conn.inputStream.text?.trim()
+
+		log.debug "Got response from PayPal IPN $result"
+		println "Got response from PayPal IPN $result"
+		println "(payment || newPayment) && result == 'VERIFIED' $payment $newPayment $result"
+		if ((payment || newPayment) && result == 'VERIFIED') {
+			if (params.receiver_email != login) {
+				log.warn """WARNING: receiver_email parameter received from PayPal does not match configured e-mail. This request is possibly fraudulent!
+REQUEST INFO: ${params}
+				"""
+			}
+			else {
+				request.payment = payment
+				def status = params.payment_status
+				if (payment.status != Payment.COMPLETE && payment.status != Payment.CANCELLED) {
+					if (payment.paypalTransactionId && payment.paypalTransactionId == params.txn_id) {
+						log.warn """WARNING: Request tried to re-use and old PayPal transaction id. This request is possibly fraudulent!
+		REQUEST INFO: ${params} """
+					}
+					else if (status == 'Completed') {
+						payment.paypalTransactionId = params.txn_id
+						payment.status = Payment.COMPLETE
+						updateBuyerInformation(payment, params)
+						log.info "Verified payment ${payment} as COMPLETE"
+					} else if (status == 'Pending') {
+						payment.paypalTransactionId = params.txn_id
+						payment.status = Payment.PENDING
+						updateBuyerInformation(payment, params)
+						log.info "Verified payment ${payment} as PENDING"
+					} else if (status == 'Failed') {
+						payment.paypalTransactionId = params.txn_id
+						payment.status = Payment.FAILED
+						updateBuyerInformation(payment, params)
+						log.info "Verified payment ${payment} as FAILED"
+					}
+				}
+				payment.save(flush: true)
+				if(!payment.formId && !payment.instanceId && newPayment){
+					def user = User.get(payment.buyerId)
+					def client = Client.get(user.userTenantId)
+					def planId = payment.paymentItems[0].itemNumber
+					def plan = Plan.get(planId.toLong())
+					client.plan = plan
+					client.maxUsers = plan.maxUsers
+					client.maxAttachmentSize = plan.maxStorage
+					client.maxEmailAccount = plan.maxEmailAccount
+					def cal = Calendar.getInstance()
+					client.validFrom = cal.getTime()
+					cal.add(Calendar.MONTH,1)
+					client.validTo = cal.getTime()
+					client.save(flush:true)
+					def billingHistory = new BillingHistory()
+					billingHistory.client = client
+					billingHistory.description = payment.paymentItems[0].itemName
+					billingHistory.amount = payment.paymentItems[0].amount
+					billingHistory.billDate = new Date()
+					billingHistory.transactionId = payment.transactionId
+					billingHistory.save(flush:true)
+				}
+			}
+		}
+		else {
+			log.debug "Error with PayPal IPN response: [$result] and Payment: [${payment?.transactionId}]"
+			println "Error with PayPal IPN response: [$result] and Payment: [${payment?.transactionId}]"
+		}
+		render "OK" // Paypal needs a response, otherwise it will send the notification several times!
+	}
+
+	void updateBuyerInformation(payment, params) {
+		BuyerInformation buyerInfo = payment.buyerInformation ?: new BuyerInformation()
+		buyerInfo.populateFromPaypal(params)
+		payment.buyerInformation = buyerInfo
+	}
+
+	def success = {
+		def payment = Payment.findByTransactionId(params.transactionId)
+		log.debug "Success notification received from PayPal for $payment with transaction id ${params.transactionId}"
+		println "Success notification received from PayPal for $payment with transaction id ${params.transactionId}"
+		if (payment) {
+			request.payment = payment
+			if (payment.status != Payment.COMPLETE) {
+				payment.status = Payment.COMPLETE
+				if(params.txn_id){
+					payment.paypalTransactionId = params.txn_id
+				}else{
+					def txs = params.list("tx")
+					txs?.each{tx->
+						payment.paypalTransactionId = tx
+					}
+				}
+				payment.save(flush: true)
+			}
+
+			if (params.returnAction || params.returnController) {
+				def args = [:]
+				if (params.returnAction) args.action = params.returnAction
+				if (params.returnController) args.controller = params.returnController
+				if (payment.formId) {
+					flash.message = "${g.message(code:'paypal.form.transaction.success',args:[params.transactionId],default:'Your Paypal transaction is successful. Thank you. Your transaction id is: '+params.transactionId)}"
+					flash.defaultMessage = flash.message
+					args.params = [formId: payment.formId]
+					args.id = payment.instanceId
+//					try{
+//						def form = org.grails.formbuilder.Form.read(payment.formId)
+//						def paypalField = form.fieldsList.find{it.type=='Paypal'}
+//						def paypalFieldSettings = grails.converters.JSON.parse(paypalField.settings)
+//						def itemForm = org.grails.formbuilder.Form.read(paypalFieldSettings.itemForm)
+//						payment.paymentItems.each{PaymentItem paymentItem->
+//							def itemId = paymentItem.itemNumber.split("_")[1]
+//							def item = sqlDomainClassService.get(itemId,itemForm)
+//							item.updatedBy = item.updated_by_id?(com.oneapp.cloud.core.User.read(item.updated_by_id)):(com.oneapp.cloud.core.User.read(item.created_by_id))
+//							item[paypalFieldSettings.iqf] = item[paypalFieldSettings.iqf]-paymentItem.quantity
+//							sqlDomainClassService.update(item,itemForm)
+//						}
+//					}catch(Exception e){
+//						println "Exception here is :=>>>>"+e
+//					}
+				}else{
+					args.params = params
+				}
+				redirect(args)
+				return
+			}
+			else {
+				if(payment.formId && payment.instanceId)
+					return [payment: payment]
+				else
+					redirect(controller:"dropDown",action:"paymentSuccess", params:params)
+			}
+		}
+		else {
+			response.sendError 403
+		}
+	}
+
+	def cancel = {
+		def payment = Payment.findByTransactionId(params.transactionId)
+		log.debug "Cancel notification received from PayPal for $payment with transaction id ${params.transactionId}"
+		println "Cancel notification received from PayPal for $payment with transaction id ${params.transactionId}"
+		if (payment) {
+			request.payment = payment
+			if (payment.status != Payment.COMPLETE) {
+				payment.status = Payment.CANCELLED
+				payment.save(flush: true)
+				if (params.cancelAction || params.cancelController) {
+					def args = [:]
+					if (params.cancelAction) args.action = params.cancelAction
+					if (params.cancelController) args.controller = params.cancelController
+					if (payment.formId) {
+						flash.message = "${g.message(code:'paypal.form.transaction.cancel',args:[],default:'Transaction Cancelled')}"
+						flash.defaultMessage = flash.message
+						println "Message: "+flash.message
+						args.params = [formId: payment.formId]
+						args.id = payment.instanceId
+					}
+					redirect(args)
+				}
+				else {
+					return [payment: payment]
+				}
+			}
+			else {
+				response.sendError 403
+			}
+		}
+		else {
+			response.sendError 403
+		}
+
+	}
+
+	def buy = {
+		def payment
+		if (params.transactionId) {
+			payment = Payment.findByTransactionId(params.transactionId)
+		}
+		else {
+			payment = new Payment(params)
+			payment.addToPaymentItems(new PaymentItem(params))
+		}
+
+		if (payment?.id) log.debug "Resuming existing transaction $payment"
+		if (payment?.validate()) {
+			request.payment = payment
+			payment.save(flush: true)
+			def config = grailsApplication.config.grails.paypal
+			def server = config.server
+			def baseUrl = params.baseUrl
+			def login = params.email ?: config.email
+			if (!server || !login) throw new IllegalStateException("Paypal misconfigured! You need to specify the Paypal server URL and/or account email. Refer to documentation.")
+
+			def commonParams = [buyerId: payment.buyerId, transactionId: payment.transactionId]
+			if (params.returnAction) {
+				commonParams.returnAction = params.returnAction
+			}
+			if (params.returnController) {
+				commonParams.returnController = params.returnController
+			}
+			if (params.cancelAction) {
+				commonParams.cancelAction = params.cancelAction
+			}
+			if (params.cancelController) {
+				commonParams.cancelController = params.cancelController
+			}
+			def notifyURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'notify', params: commonParams).encodeAsURL()
+			def successURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'success', params: commonParams).encodeAsURL()
+			def cancelURL = g.createLink(absolute: baseUrl==null, base: baseUrl, controller: 'paypal', action: 'cancel', params: commonParams).encodeAsURL()
+
+			def url = new StringBuffer("$server?")
+			url << "cmd=_xclick&"
+			url << "business=$login&"
+			url << "item_name=${payment.paymentItems[0].itemName}&"
+			url << "item_number=${payment.paymentItems[0].itemNumber}&"
+			url << "quantity=${payment.paymentItems[0].quantity}&"
+			url << "amount=${payment.paymentItems[0].amount}&"
+            if (payment.paymentItems[0].discountAmount > 0) {
+                url << "discount_amount=${payment.paymentItems[0].discountAmount}&"
+            }
+			url << "tax=${payment.tax}&"
+			url << "currency_code=${payment.currency}&"
+			url << "notify_url=${notifyURL}&"
+			url << "return=${successURL}&"
+			url << "cancel_return=${cancelURL}"
+
+			log.debug "Redirection to PayPal with URL: $url"
+
+			redirect(url: url)
+		}
+		else {
+			flash.payment = payment
+			redirect(url: params.originalURL)
+		}
+	}
+
+	def uploadCart = {ShippingAddressCommand address ->
+		//Assumes the Payment has been pre-populated and saved by whatever cart mechanism
+		//you are using...
+		def payment = Payment.findByTransactionId(params.transactionId)
+		log.debug "Uploading cart: $payment"
+		def config = grailsApplication.config.grails.paypal
+		def server = config.server
+		def login = params.email ?: config.email
+		if (!server || !login) throw new IllegalStateException("Paypal misconfigured! You need to specify the Paypal server URL and/or account email. Refer to documentation.")
+		def commonParams = [buyerId: payment.buyerId, transactionId: payment.transactionId]
+		if (params.returnAction) {
+			commonParams.returnAction = params.returnAction
+		}
+		if (params.returnController) {
+			commonParams.returnController = params.returnController
+		}
+		if (params.cancelAction) {
+			commonParams.cancelAction = params.cancelAction
+		}
+		if (params.cancelController) {
+			commonParams.cancelController = params.cancelController
+		}
+		def notifyURL = g.createLink(absolute: true, controller: 'paypal', action: 'notify', params: commonParams).encodeAsURL()
+		def successURL = g.createLink(absolute: true, controller: 'paypal', action: 'success', params: commonParams).encodeAsURL()
+		def cancelURL = g.createLink(absolute: true, controller: 'paypal', action: 'cancel', params: commonParams).encodeAsURL()
+
+		def url = new StringBuffer("$server?")
+		url << "cmd=_cart&upload=1&"
+		url << "business=$login&"
+		if (params.pageStyle) {
+			url << "page_style=${params.pageStyle}&"
+		}
+		if (params.addressOverride) {
+			url << "address_override=1&"
+			url << "first_name=${address.firstName}&"
+			url << "last_name=${address.lastName}&"
+			url << "address1=${address.addressLineOne}&"
+			if (address.addressLineTwo) {
+				url << "address2=${address.addressLineTwo}&"
+			}
+			url << "city=${address.city}&"
+			url << "country=${address.country}&"
+			url << "night_phone_a=${address.areaCode}&"
+			url << "night_phone_b=${address.phonePrefix}&"
+			url << "night_phone_c=${address.phoneSuffix}&"
+			url << "state=${address.state}&"
+			url << "zip=${address.zipCode}&"
+		}
+		else if (params.noShipping) {
+			url << "no_shipping=1&"
+		}
+		payment.paymentItems.eachWithIndex {paymentItem, i ->
+			def itemId = i + 1
+			url << "item_name_${itemId}=${paymentItem.itemName}&"
+			url << "item_number_${itemId}=${paymentItem.itemNumber}&"
+			url << "quantity_${itemId}=${paymentItem.quantity}&"
+			url << "amount_${itemId}=${paymentItem.amount}&"
+            if (payment.discountCartAmount == 0 && paymentItem.discountAmount > 0) {
+                url << "discount_amount_${itemId}=${paymentItem.discountAmount}&"
+            }
+		}
+        if (payment.discountCartAmount > 0) {
+            url << "discount_cart_amount_${payment.discountCartAmount}&"
+        }
+		url << "currency_code=${payment.currency}&"
+		url << "notify_url=${notifyURL}&"
+		url << "return=${successURL}&"
+		url << "cancel_return=${cancelURL}&"
+		url << "rm=2"
+
+		log.debug "Redirection to PayPal with URL: $url"
+
+		redirect(url: url)
+	}
+
+}
+
+// This is a first version that only applies to the U.S. - Can anybody write an i18n-enabled version
+// that Paypal can still understand?
+
+class ShippingAddressCommand {
+	String firstName
+	String lastName
+	String addressLineOne
+	String addressLineTwo
+	String city
+	USState state
+	String country = 'US'
+	String zipCode
+	String areaCode
+	String phonePrefix
+	String phoneSuffix
+
+	static constraints = {
+		firstName(blank: false)
+		lastName(blank: false)
+		addressLineOne(blank: false)
+		addressLineTwo(nullable: true, blank: true)
+		city(blank: false)
+		country(blank: false)
+		zipCode(blank: false, matches: /\d{5}/)
+		areaCode(blank: false, matches: /\d{3}/)
+		phonePrefix(blank: false, matches: /\d{3}/)
+		phoneSuffix(blank: false, matches: /\d{4}/)
+	}
+
+}
+

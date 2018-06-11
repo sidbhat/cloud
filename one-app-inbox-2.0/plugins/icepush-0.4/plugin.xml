@@ -1,0 +1,20 @@
+<plugin name='icepush' version='0.4' grailsVersion='1.2.0 &gt; *'>
+  <author>Stephane MALDINI</author>
+  <authorEmail>smaldini@doc4web.com</authorEmail>
+  <title>ICEpush integration</title>
+  <description>\
+ICEpush is a notification framework, it doesn't carry data unlike Cometd. However you can register callbacks such as page/fragment refresh and script invokation. By combining 1 Tag and 1 Call (from javascript/ser/ver side), you add a new dimension in your webware.
+You can push, join/leave channels from controllers/gsp and add support for services.
+
+This plugin can be mixed with the coming ICEfaces 2 integration to allow collaborative application scaffolding and push capabilities for JSF2.
+</description>
+  <documentation>http://grails.org/plugin/icepush</documentation>
+  <resources>
+    <resource>BuildConfig</resource>
+    <resource>DataSource</resource>
+    <resource>UrlMappings</resource>
+    <resource>org.doc4web.grails.icepush.IcepushTagLib</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

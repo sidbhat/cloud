@@ -1,0 +1,115 @@
+package com.oneappcloud;
+
+import java.net.*;
+import java.io.*;
+
+
+public class TestConnection {
+        
+    public static void main(String[] args) { 
+//	try {
+//		CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
+//	    URL url = new URL("http://demo.oneappcloud.com:8086/android-app");
+//	    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+//	    conn.setDoOutput(true);
+//	    conn.connect();
+//	    
+//	    URL url1 = new URL("http://demo.oneappcloud.com:8086/android-app/j_spring_security_check");
+//	    conn = (HttpURLConnection)url1.openConnection();
+//	    conn.setDoOutput(true);
+//	    conn.setRequestMethod("POST");
+//	    Writer wr=null;
+//		try{
+//			wr = new OutputStreamWriter(conn.getOutputStream());
+//			wr.write("j_username=admin@oneappcloud.com&j_password=admin&ajax=true");
+//			wr.flush();
+//		}finally{
+//			wr.close();
+//		}
+//		String line;
+//	    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+//	    while ((line = reader.readLine()) != null) {
+//	      System.out.println(line);
+//	    }
+//	    reader.close();
+//	    
+//	    
+////	    URL url2 = new URL("http://demo.oneappcloud.com:8086/android-app/application/create");
+////	    conn = (HttpURLConnection)url2.openConnection();
+////	    conn.setDoOutput(true);
+////	    conn.setRequestMethod("POST");
+////	    wr=null;
+////		try{
+////			wr = new OutputStreamWriter(conn.getOutputStream());
+////			wr.write("productId=77");
+////			wr.flush();
+////		}finally{
+////			wr.close();
+////		}
+////	    reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+////	    while ((line = reader.readLine()) != null) {
+////	      System.out.println(line);
+////	    }
+////	    reader.close();
+//	    
+//	    //==============######################################################
+//	    File binaryFile = new File("C:\\Users\\Sid\\Desktop\\Upload\\Image1025.jpg");
+//	    String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
+//	    String CRLF = "\r\n"; // Line separator required by multipart/form-data.
+//	    String charset = "UTF-8";
+//
+//	    HttpURLConnection connection = (HttpURLConnection)new URL("http://demo.oneappcloud.com:8086/android-app/application/save").openConnection();
+//	    connection.setDoOutput(true);
+//	    connection.setRequestMethod("POST");
+//	    connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+//	    PrintWriter writer = null;
+//	    try {
+//	        OutputStream output = connection.getOutputStream();
+//	        writer = new PrintWriter(new OutputStreamWriter(output, charset), true); // true = autoFlush, important!
+//
+//	        // Send normal param.
+//	        writer.append("--" + boundary).append(CRLF);
+//	        writer.append("Content-Disposition: form-data; name=\"productId\"").append(CRLF);
+//	        writer.append("Content-Type: text/plain; charset=" + charset).append(CRLF);
+//	        writer.append(CRLF);
+//	        writer.append("77").append(CRLF).flush();
+//
+//	        // Send binary file.
+//	        writer.append("--" + boundary).append(CRLF);
+//	        writer.append("Content-Disposition: form-data; name=\"fieldPassport\"; filename=\"" + binaryFile.getName() + "\"").append(CRLF);
+//	        writer.append("Content-Type: " + URLConnection.guessContentTypeFromName(binaryFile.getName())).append(CRLF);
+//	        writer.append("Content-Transfer-Encoding: binary").append(CRLF);
+//	        writer.append(CRLF).flush();
+//	        InputStream input = null;
+//	        try {
+//	            input = new FileInputStream(binaryFile);
+//	            byte[] buffer = new byte[1024];
+//	            for (int length = 0; (length = input.read(buffer)) > 0;) {
+//	                output.write(buffer, 0, length);
+//	            }
+//	            output.flush(); // Important! Output cannot be closed. Close of writer will close output as well.
+//	        } finally {
+//	            if (input != null) try { input.close(); } catch (IOException logOrIgnore) {}
+//	        }
+//	        writer.append(CRLF).flush(); // CRLF is important! It indicates end of binary boundary.
+//
+//	        // End of multipart/form-data.
+//	        writer.append("--" + boundary + "--").append(CRLF).flush();
+//	        
+//	    } finally {
+//	        if (writer != null) writer.close();
+//	    }
+//	    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+//	    while ((line = reader.readLine()) != null) {
+//	      System.out.println(line);
+//	    }
+//	    reader.close();
+//	    //==============######################################################
+//	    
+//	} catch (IOException ioe) {
+//	    ioe.printStackTrace();
+//	}
+    	
+    }
+    
+}

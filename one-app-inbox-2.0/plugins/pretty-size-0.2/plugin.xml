@@ -1,0 +1,12 @@
+<plugin name='pretty-size' version='0.2' grailsVersion='1.2-M2 &gt; *'>
+  <author>Cazacu Mihai</author>
+  <authorEmail>cazacugmihai@yahoo.com</authorEmail>
+  <title>Pretty-size plugin</title>
+  <description>A plugin that allows you to display human readable file size.</description>
+  <documentation>http://grails.org/PrettySize+Plugin</documentation>
+  <resources>
+    <resource>org.grails.prettysize.PrettySizeTagLib</resource>
+  </resources>
+  <dependencies />
+  <behavior />
+</plugin>

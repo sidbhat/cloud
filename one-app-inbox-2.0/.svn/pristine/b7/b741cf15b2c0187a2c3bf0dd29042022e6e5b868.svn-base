@@ -1,0 +1,44 @@
+/** ****************************************************************************
+ * [ NIKKISHI CONFIDENTIAL ]                                                  *
+ *                                                                            *
+ *    Copyright (c) 2011.  Nikkishi LLC                                       *
+ *    All Rights Reserved.                                                    *
+ *                                                                            *
+ *   NOTICE:  All information contained herein is, and remains                *
+ *   the property of Nikkishi LLC and its suppliers,                          *
+ *   if any.  The intellectual and technical concepts contained               *
+ *   herein are proprietary to Nikkishi LLC and its                           *
+ *   suppliers and may be covered by U.S. and Foreign Patents,                *
+ *   patents in process, and are protected by trade secret or copyright law.  *
+ *   Dissemination of this information or reproduction of this material       *
+ *   is strictly forbidden unless prior written permission is obtained        *
+ *   from Nikkishi LLC.                                                       *
+ ***************************************************************************** */
+
+package com.oneapp.cloud.core
+
+import java.io.Serializable;
+
+class Plan implements Serializable{
+
+    String planName
+	String description
+	Long maxStorage
+    Double amount
+	Long maxUsers=5
+	Long form=5
+	Long maxEmailAccount = 2
+	Long maxFormEntries = 100
+
+    static constraints = {
+        planName  nullable: false
+		description blank: true, nullable: true
+		maxStorage nullable: false
+        amount  nullable: false
+		maxUsers nullable: false
+		form nullable:false
+		maxEmailAccount nullable:false
+		maxFormEntries nullable:false
+    }
+
+}

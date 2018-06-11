@@ -1,0 +1,11 @@
+DefaultPackage
+grails-app.conf
+grails-app.controllers
+grails-app.domain.net.zorched.test
+grails-app.services.net.zorched.test
+grails-app.utils.net.zorched.constraints
+grails-app.utils.net.zorched.test
+scripts
+src.java.net.zorched.grails.plugins.validation
+test.integration
+test.unit

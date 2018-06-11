@@ -1,0 +1,138 @@
+package org.grails.formbuilder
+
+import grails.converters.JSON;
+import org.springframework.web.multipart.MultipartFile;
+import org.codehaus.groovy.grails.web.pages.FastStringWriter;
+import org.codehaus.groovy.grails.commons.ConfigurationHolder as CH
+import com.macrobit.grails.plugins.attachmentable.domains.Attachment;
+import com.macrobit.grails.plugins.attachmentable.util.AttachmentableUtil;
+import java.text.SimpleDateFormat;
+/**
+*
+* @author <a href='mailto:admin@yourdomain.com'>Nikkishi</a>
+*
+* @since 0.1
+*/
+class WebHookAdaptor {
+	public static String charset = "UTF-8";
+	public static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy")
+	public static void sendData(FormAdmin formAdmin, def domainInstance,def params, def uploadedFiles,def action,def form = null) {
+		try{
+			if(formAdmin.webHookDetails){
+				def webHookURL = formAdmin.webHookDetails.url
+				def url = new URL (webHookURL)
+				def conn = url.openConnection()
+				conn.doOutput = true
+				
+				def data = getPostParameters(params,formAdmin,domainInstance,uploadedFiles,action,form)
+						
+					conn.setRequestMethod("POST")
+					Writer wr
+					try{
+						wr = new OutputStreamWriter(conn.outputStream)
+						wr.write(getParamsJoined(data))
+						wr.flush()
+					}finally{
+						wr?.close()
+					}
+//				}
+				
+				conn.connect()
+				println "WebHookAdaptor-sendData: response: "+conn.content.text
+			}
+		}catch(Exception e){
+			println "WebHookAdaptor-sendData: "+e
+		}
+	}
+	
+	public static String getParamsJoined(def data){
+		FastStringWriter x
+		data.each{k,v->
+			if(x){
+				x << """&"""
+			}else{
+				x = new FastStringWriter()
+			}
+			x << """${k.toString().encodeAsURL()}=${(v!=null?(""+v):"").encodeAsURL()}"""
+		}
+		return x.toString()
+	}
+	
+	public static def getPostParameters(def parameters,FormAdmin formAdmin,def domainInstance,def uploadedFiles,def action,def form=null) {
+		if(form == null){
+			form = formAdmin.form
+		}
+		def x = [:]
+		if(formAdmin.webHookDetails.includeFieldAndForm){
+			//settings form meta data
+			x.form_id = form.id
+			x.form_name = form.name
+			x.form_label = form.toString()
+			x.form_type = (form.formCat == 'S')?"SubForm":formAdmin.formType
+			if(form.formCat == 'S'){
+				x.parent_form_id = parameters.pfid
+				x.parent_form_instance_id = parameters.pfii
+				x.parent_form_field_name = parameters.pffn
+			}
+			
+			//setting fields meta data
+			def fieldsList = form.fieldsList.collect{[id:it.id,name:it.name,label:it.toString(),type:it.type]}
+			x.fieldsList = fieldsList as JSON
+		}else{
+			x.form_id = form.id
+			if(form.formCat == 'S'){
+				x.parent_form_id = parameters.pfid
+				x.parent_form_instance_id = parameters.pfii
+				x.parent_form_field_name = parameters.pffn
+			}
+		}
+		if(domainInstance){
+			x.id = domainInstance.id
+			x.version = domainInstance.version
+			form.fieldsList.each{Field field->
+				def nonInputFields = ["ImageUpload","LinkVideo","PlainText","PlainTextHref","SubForm"]
+				if(!nonInputFields.contains(field.type)){
+					if(field.type == "FileUpload"){
+						def attach = uploadedFiles.find{it.inputName == "${field.name}_file"}
+						def url = ""
+						if(attach){
+							url = "${CH.config.grails.serverURL}/attachmentable/download/${attach.id}"
+						}
+						x[field.name+"_file"] = url
+					} else {
+						if(domainInstance[field.name]?.class?.name == "java.sql.Timestamp" || domainInstance[field.name]?.class?.name == Date.class.name){
+							try{
+								x[field.name] = sdf.format(domainInstance[field.name] )
+							}catch(Exception ex){
+								x[field.name] = domainInstance[field.name]
+							}
+						}else{
+							x[field.name] = domainInstance[field.name]
+						}
+					}
+				}
+			}
+			if(domainInstance.created_by_id){
+				x.createdBy = domainInstance.created_by_id
+			}else{
+				x.createdBy = domainInstance.createdBy?.id
+			}
+			
+			x.updatedBy = domainInstance.updatedBy?.id
+			x.dateCreated = domainInstance.dateCreated
+			x.lastUpdated = domainInstance.lastUpdated
+			if(x.dateCreated){
+				try{
+					x.dateCreated = sdf.format(x.dateCreated )
+					x.lastUpdated = sdf.format(x.lastUpdated )
+				}catch(Exception ex){
+					
+				}
+			}
+		}else{
+			x.id = parameters.id
+		}
+		x.action = action
+		return x
+	}
+}

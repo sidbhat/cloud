@@ -1,0 +1,108 @@
+
+package org.grails.formbuilder
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+
+import com.oneapp.cloud.core.Role;
+
+/**
+*
+* @author <a href='mailto:admin@yourdomain.com'>Nikkishi</a>
+*
+* @since 0.1
+*/
+class PropertySetter {
+	//static allowedMethods = [save: "POST", update: "POST", delete: "POST"]
+	static final List DOMAIN_CLASS_SYSTEM_FIELDS = ["id", "version", "dateCreated", "lastUpdated"]
+	static final def ROLES_TO_SHOW_ALL_RECORDS  = Role.ROLE_HR_MANAGER
+	static final def ROLES_TO_SHOW_ALL_FIELDS = Role.ROLE_HR_MANAGER
+	
+	// Replacement of domainInstance.properties = params, http://jira.codehaus.org/browse/GRAILS-1601
+	public static void setProperties(domainClass, domainInstance, params) {
+		String dateFormat = ConfigurationHolder.config.format.date
+		SimpleDateFormat sdf = new SimpleDateFormat(dateFormat?:"MM/dd/yyyy");
+		[domainClass.properties.findAll {
+			!(it.name in DOMAIN_CLASS_SYSTEM_FIELDS)
+		}].flatten().each { p ->
+		
+			if (p.type == Boolean.class || p.type == boolean.class) {
+				domainInstance."${p.name}" = false
+			}
+			
+			def cp = domainClass.constrainedProperties[p.name]
+			
+			if (params[p.name] || params[p.name] == '' || cp?.metaConstraints?.required != null ) {
+				if (p.oneToMany || p.manyToMany) {
+					[params[p.name]].flatten().each { id ->
+						domainInstance."${p.name}" << p.referencedDomainClass.clazz.get(id)
+						//println p.name
+					}
+				} else if (p.manyToOne || p.oneToOne) {
+					//println "referenced domain is $p.referencedDomainClass $p"
+					if ( p.referencedDomainClass?.name?.indexOf("User") )
+						domainInstance."${p.name}" = com.oneapp.cloud.core.User.get(params[p.name].id)
+				} else if(p.type == BigDecimal.class) {
+					try{
+						if(params[p.name]){
+							domainInstance."${p.name}" = params[p.name]?.toBigDecimal()
+						}else{
+							def required = false
+							try{
+								required = cp ? cp.metaConstraints.required : false
+							}catch(Exception e){
+								println "Exception occurred : "+e
+							}
+							if(required){
+								domainInstance.errors.rejectValue("${p.name}", "default.blank.message", [] as Object[], "Property [{0}] of class [{1}] cannot be blank")
+							}
+							domainInstance."${p.name}" = null
+						}
+					}catch(Exception e){
+						domainInstance.errors.rejectValue("${p.name}", "typeMismatch.java.math.BigDecimal", [] as Object[], "Property {0} must be a valid number")
+					}
+				} else if(p.type == Date.class) {
+					try{
+						if(params[p.name]){
+							Date d = sdf.parse(params[p.name])
+							domainInstance."${p.name}" = d
+						}else{
+							def required = false
+							try{
+								required = cp ? cp.metaConstraints.required : false
+							}catch(Exception e){}
+							if(required){
+								domainInstance.errors.rejectValue("${p.name}", "default.blank.message", [] as Object[], "Property [{0}] of class [{1}] cannot be blank")
+							}
+							domainInstance."${p.name}" = null
+						}
+					}catch(Exception e){
+						domainInstance.errors.rejectValue("${p.name}", "typeMismatch.java.math.Date", [] as Object[], "Property {0} must be a valid Date with format '${dateFormat?:'MM/dd/yyyy'}'")
+					}
+				} else if( p.type == List.class ){
+					//Ignore this field. It should be subForm type
+				} else{
+					domainInstance."${p.name}" = params[p.name]?:""
+					try{
+						if(params[p.name]){
+							domainInstance."${p.name}" = params[p.name]
+						}else{
+							def required = false
+							try{
+								required = cp ? (cp.metaConstraints.required?:false) : false
+							}catch(Exception e){}
+							if(required){
+								domainInstance.errors.rejectValue("${p.name}", "default.blank.message", [] as Object[], "Property [{0}] of class [{1}] cannot be blank")
+							}
+							domainInstance."${p.name}" = ""
+						}
+					}catch(Exception e){
+						domainInstance.errors.rejectValue("${p.name}", "default.blank.message", [] as Object[], "Property [{0}] of class [{1}] cannot be blank")
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,31 @@
+package org.grails.formbuilder
+
+import java.io.Serializable;
+
+/**
+ *
+ * @author <a href='mailto:admin@oneappcloud.com'>Nikkishi</a>
+ *
+ * @since 0.1
+ */
+class NotifyCondition implements Serializable{
+	Long fieldId
+	String op
+	String val
+	String condOp
+	NotiStatus status
+	Integer sequence
+	static belongsTo=[formAdmin:FormAdmin]
+	static transients = ['status']
+	static constraints = {
+		fieldId nullable:true
+		op nullable:true,blank:true
+		val nullable:true,blank:true
+		condOp nullable:true,blank:true
+		sequence nullable:true
+	}
+}
+enum NotiStatus {
+	U, // UPDATED
+	D // DELETED
+}

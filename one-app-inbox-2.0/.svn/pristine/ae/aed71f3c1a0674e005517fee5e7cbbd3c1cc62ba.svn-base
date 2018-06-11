@@ -1,0 +1,21 @@
+
+h1. getAttachments
+
+h2. Purpose
+
+
+
+h2. Examples
+
+{code:java}
+foo.getAttachments(string)
+{code}
+
+h2. Description
+
+
+
+Arguments:
+
+[* @string@
+]
